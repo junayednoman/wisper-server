@@ -1,0 +1,1 @@
+{"version":3,"file":"routeNotFoundHandler.d.ts","sourceRoot":"","sources":["../../../src/app/middlewares/routeNotFoundHandler.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAE1D,QAAA,MAAM,oBAAoB,GACxB,KAAK,OAAO,EACZ,KAAK,QAAQ,EACb,OAAO,YAAY,SAOpB,CAAC;AAEF,eAAe,oBAAoB,CAAC"}

@@ -1,0 +1,609 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Auth {
+  id                      String                   @id @default(uuid())
+  email                   String                   @unique
+  password                String
+  needsPasswordChange     Boolean                  @default(false)
+  role                    UserRole
+  status                  UserStatus               @default(PENDING)
+  loginProvider           LoginProvider            @default(EMAIL)
+  fcmToken                String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  otp                     Otp?
+  person                  Person?
+  business                Business?
+  comments                Comment[]
+  resumes                 Resume[]
+  jobs                    Job[]
+  chats                   Chat[]
+  participatedChats       ChatParticipant[]
+  blockedChats            BlockedChatParticipant[]
+  mutedChats              ChatMute[]
+  messages                Message[]
+  chatDeletions           ChatDeletion[]
+  docs                    Doc[]
+  links                   Link[]
+  medias                  Media[]
+  givenRecommendations    Recommendation[]         @relation("RecommendationGiver")
+  receivedRecommendations Recommendation[]         @relation("RecommendationReceiver")
+  complainedComplaints    Complaint[]              @relation("Complainant")
+  receivedComplaints      Complaint[]              @relation("ReceivedAccount")
+  requestedConnections    Connection[]             @relation("Requester")
+  receivedConnections     Connection[]             @relation("Receiver")
+  initiatedCalls          Call[]                   @relation("Initiator")
+  receivedCalls           Call[]                   @relation("Receiver")
+  participatedCalls       CallParticipant[]
+  wallet                  Wallet?
+  admin                   Admin?
+
+  @@map("auths")
+}
+
+model Otp {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  user       Auth     @relation(fields: [email], references: [email])
+  otp        String
+  expires    DateTime
+  attempts   Int
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("otps")
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  auth         Auth     @relation(fields: [email], references: [email])
+  name         String
+  phone        String?
+  profileImage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Person {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  auth            Auth     @relation(fields: [email], references: [email])
+  name            String
+  phone           String?
+  industry        String
+  image           String?
+  title           String?
+  defaultResumeId String?
+  defaultResume   Resume?  @relation(fields: [defaultResumeId], references: [id])
+  address         String?
+  updatedAt       DateTime @updatedAt
+
+  @@map("persons")
+}
+
+model Business {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  auth      Auth     @relation(fields: [email], references: [email])
+  name      String
+  phone     String?
+  industry  String
+  image     String?
+  address   String?
+  updatedAt DateTime @updatedAt
+
+  @@map("businesses")
+}
+
+model Post {
+  id            String        @id @default(uuid())
+  authorId      String
+  caption       String
+  images        String[]
+  views         Int           @default(0)
+  isSponsored   Boolean       @default(false)
+  commentAccess CommentAccess
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  comment       Comment[]
+  Complaint     Complaint[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  authorId  String
+  author    Auth     @relation(fields: [authorId], references: [id])
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  text      String
+  createdAt DateTime @default(now())
+
+  @@map("comments")
+}
+
+model Resume {
+  id        String   @id @default(uuid())
+  authorId  String
+  author    Auth     @relation(fields: [authorId], references: [id])
+  name      String
+  file      String
+  fileSize  String
+  createdAt DateTime @default(now())
+  person    Person[]
+
+  @@map("resumes")
+}
+
+model Job {
+  id               String              @id @default(uuid())
+  authorId         String
+  author           Auth                @relation(fields: [authorId], references: [id])
+  title            String
+  description      String
+  type             JobType
+  experienceLevel  JobExperienceLevel
+  compensationType JobCompensationType
+  company          Float
+  location         JobLocation
+  industry         String
+  qualification    JobQualification
+  requirements     String[]
+  responsibilities String
+  applicationType  JobApplicationType
+  applicationLink  String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@map("jobs")
+}
+
+model Class {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  isPrivate       Boolean  @default(true)
+  allowInvitation Boolean  @default(false)
+  image           String?
+  createdAt       DateTime @default(now())
+  chat            Chat?
+
+  @@map("classes")
+}
+
+model Group {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  isPrivate       Boolean  @default(true)
+  allowInvitation Boolean  @default(false)
+  image           String?
+  createdAt       DateTime @default(now())
+  chat            Chat?
+
+  @@map("groups")
+}
+
+model Chat {
+  id                      String                   @id @default(uuid())
+  lastMessageId           String?
+  type                    ChatType
+  groupId                 String?                  @unique
+  group                   Group?                   @relation(fields: [groupId], references: [id])
+  classId                 String?                  @unique
+  class                   Class?                   @relation(fields: [classId], references: [id])
+  updatedAt               DateTime                 @updatedAt
+  Auth                    Auth?                    @relation(fields: [authId], references: [id])
+  authId                  String?
+  participants            ChatParticipant[]
+  blockedChatParticipants BlockedChatParticipant[]
+  chatMutes               ChatMute[]
+  messages                Message[]
+  chatDeletions           ChatDeletion[]
+  docs                    Doc[]
+  links                   Link[]
+  medias                  Media[]
+
+  @@map("chats")
+}
+
+model ChatDeletion {
+  id        String   @id @default(uuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  authId    String
+  auth      Auth     @relation(fields: [authId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("chat_deletions")
+}
+
+model ChatParticipant {
+  id          String        @id @default(uuid())
+  chatId      String
+  chat        Chat          @relation(fields: [chatId], references: [id])
+  authId      String
+  auth        Auth          @relation(fields: [authId], references: [id])
+  role        ChatRole      @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+  lastSeen    DateTime      @default(now())
+  messageSeen MessageSeen[]
+
+  @@map("chat_participants")
+}
+
+model BlockedChatParticipant {
+  id     String @id @default(uuid())
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id])
+  authId String
+  auth   Auth   @relation(fields: [authId], references: [id])
+
+  @@map("blocked_chat_participants")
+}
+
+model ChatMute {
+  id        String    @id @default(uuid())
+  authId    String
+  auth      Auth      @relation(fields: [authId], references: [id])
+  chatId    String
+  chat      Chat      @relation(fields: [chatId], references: [id])
+  muteUntil MuteUntil
+  mutedAt   DateTime  @default(now())
+
+  @@map("chat_mutes")
+}
+
+model Message {
+  id          String        @id @default(uuid())
+  chatId      String
+  chat        Chat          @relation(fields: [chatId], references: [id])
+  senderId    String
+  sender      Auth          @relation(fields: [senderId], references: [id])
+  text        String
+  file        String?
+  fileType    FileType?     @default(IMAGE)
+  createdAt   DateTime      @default(now())
+  messageSeen MessageSeen[]
+
+  @@map("messages")
+}
+
+model MessageSeen {
+  id            String          @id @default(uuid())
+  messageId     String
+  message       Message         @relation(fields: [messageId], references: [id])
+  participantId String
+  participant   ChatParticipant @relation(fields: [participantId], references: [id])
+  seenAt        DateTime        @default(now())
+
+  @@map("message_seen")
+}
+
+model Doc {
+  id        String   @id @default(uuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  authorId  String
+  author    Auth     @relation(fields: [authorId], references: [id])
+  url       String
+  createdAt DateTime @default(now())
+
+  @@map("docs")
+}
+
+model Link {
+  id        String   @id @default(uuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  authorId  String
+  author    Auth     @relation(fields: [authorId], references: [id])
+  link      String
+  createdAt DateTime @default(now())
+
+  @@map("links")
+}
+
+model Media {
+  id        String    @id @default(uuid())
+  chatId    String
+  chat      Chat      @relation(fields: [chatId], references: [id])
+  authorId  String
+  author    Auth      @relation(fields: [authorId], references: [id])
+  file      String
+  fileType  MediaType @default(IMAGE)
+  createdAt DateTime  @default(now())
+
+  @@map("medias")
+}
+
+model Recommendation {
+  id              String   @id @default(uuid())
+  giverId         String
+  giver           Auth     @relation(name: "RecommendationGiver", fields: [giverId], references: [id])
+  receiverId      String?
+  receiver        Auth?    @relation(name: "RecommendationReceiver", fields: [receiverId], references: [id])
+  classReceiverId String?
+  text            String
+  rating          Float
+  createdAt       DateTime @default(now())
+  authId          String?
+
+  @@map("recommendations")
+}
+
+model Complaint {
+  id            String          @id @default(uuid())
+  complainantId String
+  complainant   Auth            @relation(name: "Complainant", fields: [complainantId], references: [id])
+  postId        String?
+  post          Post?           @relation(fields: [postId], references: [id])
+  accountId     String?
+  account       Auth?           @relation(name: "ReceivedAccount", fields: [accountId], references: [id])
+  type          ComplaintType
+  reason        String
+  status        ComplaintStatus @default(PENDING)
+  date          DateTime        @default(now())
+  authId        String?
+
+  @@map("complaints")
+}
+
+model BoostPackage {
+  id       String             @id @default(uuid())
+  name     String
+  price    Int
+  duration String
+  status   BoostPackageStatus
+
+  @@map("boost_packages")
+}
+
+model Boost {
+  id             String      @id @default(uuid())
+  postId         String
+  packageId      String
+  targetIndustry String
+  impressions    Int
+  clicks         Int
+  status         BoostStatus
+  createdAt      DateTime    @default(now())
+
+  @@map("boosts")
+}
+
+model Connection {
+  id          String           @id @default(uuid())
+  requesterId String
+  requester   Auth             @relation(name: "Requester", fields: [requesterId], references: [id])
+  receiverId  String
+  receiver    Auth             @relation(name: "Receiver", fields: [receiverId], references: [id])
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+
+  @@map("connections")
+}
+
+model Call {
+  id             String            @id @default(uuid())
+  type           CallType
+  mode           CallMode
+  initiatorId    String
+  initiator      Auth              @relation(name: "Initiator", fields: [initiatorId], references: [id])
+  receiverId     String
+  receiver       Auth              @relation(name: "Receiver", fields: [receiverId], references: [id])
+  participantIds String[]
+  roomId         String
+  status         CallStatus
+  startedAt      DateTime          @default(now())
+  endedAt        DateTime?
+  duration       Int
+  participants   CallParticipant[]
+
+  @@map("calls")
+}
+
+model CallParticipant {
+  id            String @id @default(uuid())
+  callId        String
+  call          Call   @relation(fields: [callId], references: [id])
+  participantId String
+  participant   Auth   @relation(fields: [participantId], references: [id])
+}
+
+model Wallet {
+  id           String        @id @default(uuid())
+  authId       String        @unique
+  auth         Auth          @relation(fields: [authId], references: [id])
+  balance      Float
+  date         DateTime
+  transactions Transaction[]
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id       String          @id @default(uuid())
+  walletId String
+  wallet   Wallet          @relation(fields: [walletId], references: [id])
+  amount   Float
+  type     TransactionType
+  date     DateTime
+
+  @@map("transactions")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  receiverId String
+  title      String
+  body       String
+  hasSeen    Boolean  @default(false)
+  date       DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model Legal {
+  id                 String   @id @default(uuid())
+  privacyPolicy      String
+  termsAndConditions String
+  aboutUs            String
+  updatedAt          DateTime
+
+  @@map("legals")
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  SPEND
+}
+
+enum CallStatus {
+  ONGOING
+  ENDED
+  MISSED
+  CANCELLED
+}
+
+enum CallMode {
+  ONE_TO_ONE
+  GROUP
+}
+
+enum CallType {
+  VIDEO
+  AUDIO
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum BoostStatus {
+  ACTIVE
+  EXPIRED
+  PAUSED
+}
+
+enum BoostPackageStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ComplaintStatus {
+  PENDING
+  RESOLVED
+}
+
+enum ComplaintType {
+  ACCOUNT
+  POST
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+enum FileType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOC
+}
+
+enum MuteUntil {
+  EIGHT_HOURS
+  ONE_WEEK
+  ALWAYS
+}
+
+enum ChatRole {
+  MEMBER
+  ADMIN
+}
+
+enum ChatType {
+  GROUP
+  CLASS
+  INDIVIDUAL
+}
+
+enum JobApplicationType {
+  EMAIL
+  LINK
+  CHAT
+}
+
+enum JobQualification {
+  BSC
+  PHD
+  NHD
+  OND
+}
+
+enum JobLocation {
+  ON_SITE
+  REMOTE
+  HYBRID
+}
+
+enum JobCompensationType {
+  MONTHLY
+  ONE_OFF
+}
+
+enum JobExperienceLevel {
+  ENTRY_LEVEL
+  JUNIOR
+  MID_LEVEL
+  SENIOR
+}
+
+enum JobType {
+  PART_TIME
+  FULL_TIME
+  CONTRACT
+}
+
+enum CommentAccess {
+  FOLLOWERS
+  EVERYONE
+}
+
+enum UserRole {
+  ADMIN
+  PERSON
+  BUSINESS
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum LoginProvider {
+  FACEBOOK
+  GOOGLE
+  EMAIL
+}

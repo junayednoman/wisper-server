@@ -1,0 +1,1 @@
+{"version":3,"file":"ApiError.d.ts","sourceRoot":"","sources":["../../../../src/app/middlewares/classes/ApiError.ts"],"names":[],"mappings":"AAAA,cAAM,QAAS,SAAQ,KAAK;IAC1B,UAAU,EAAE,MAAM,CAAC;gBACP,UAAU,EAAE,MAAM,EAAE,OAAO,EAAE,MAAM,GAAG,SAAS,EAAE,KAAK,SAAK;CASxE;AAED,eAAe,QAAQ,CAAC"}
