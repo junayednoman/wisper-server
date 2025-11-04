@@ -16,7 +16,7 @@ app.use((0, cors_1.default)());
 app.use((0, cookie_parser_1.default)());
 app.get("/", (_req, res) => {
     res.send({
-        message: "Hello World!",
+        message: "Welcome to Wisper server 🛢️!",
     });
 });
 app.use("/api/v1", routes_1.default);

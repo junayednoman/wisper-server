@@ -5,27 +5,34 @@ import {
   changePasswordZod,
   loginZodSchema,
   resetPasswordZod,
-  verifyOtpZod,
 } from "./auth.validation";
 import { authController } from "./auth.controller";
 import authorize from "../../middlewares/authorize";
 import { UserRole } from "@prisma/client";
+import { personController } from "../person/person.controller";
+import { personSignupZod } from "../person/person.validation";
+import { businessController } from "../business/business.controller";
+import { businessSignupZod } from "../business/business.validation";
 
 const router = Router();
+
+router.post(
+  "/person/signup",
+  handleZodValidation(personSignupZod),
+  personController.signUp
+);
+
+router.post(
+  "/business/signup",
+  handleZodValidation(businessSignupZod),
+  businessController.signUp
+);
 
 router.post(
   "/login",
   handleZodValidation(loginZodSchema),
   authController.login
 );
-
-router.post(
-  "/verify-otp",
-  handleZodValidation(verifyOtpZod),
-  authController.verifyOtp
-);
-
-router.post("/send-otp", authController.sendOtp);
 
 router.post(
   "/reset-password",

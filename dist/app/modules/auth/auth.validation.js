@@ -8,7 +8,7 @@ const zod_1 = __importDefault(require("zod"));
 const global_validation_1 = require("../../validation/global.validation");
 const client_1 = require("@prisma/client");
 exports.verifyOtpZod = zod_1.default.object({
-    email: zod_1.default.string().email("Invalid email address").trim().toLowerCase(),
+    email: global_validation_1.emailZod,
     otp: zod_1.default
         .string()
         .min(6, "OTP must be at least 6 characters long")
@@ -16,17 +16,17 @@ exports.verifyOtpZod = zod_1.default.object({
     verifyAccount: zod_1.default.boolean().optional(),
 });
 exports.loginZodSchema = zod_1.default.object({
-    email: zod_1.default.string().email("Invalid email address").trim().toLowerCase(),
-    password: zod_1.default.string().min(1, "Password is required").trim(),
+    email: global_validation_1.emailZod,
+    password: global_validation_1.passwordZod,
     fcmToken: zod_1.default.string().optional(),
     isMobileApp: zod_1.default.boolean().default(false),
 });
 exports.resetPasswordZod = zod_1.default.object({
-    email: zod_1.default.string().email("Invalid email address").trim().toLowerCase(),
+    email: global_validation_1.emailZod,
     password: global_validation_1.passwordZod,
 });
 exports.changePasswordZod = zod_1.default.object({
-    oldPassword: zod_1.default.string().min(1, "Old password is required").trim(),
+    oldPassword: global_validation_1.passwordZod,
     newPassword: global_validation_1.passwordZod,
 });
 exports.changeAccountStatusZod = zod_1.default.object({

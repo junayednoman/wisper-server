@@ -1,5 +1,5 @@
-import prisma from "./utils/prisma";
-import config from "./config";
+import prisma from "./app/utils/prisma";
+import config from "./app/config";
 import bcrypt from "bcrypt";
 import { UserRole, UserStatus } from "@prisma/client";
 

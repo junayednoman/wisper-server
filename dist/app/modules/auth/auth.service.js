@@ -116,7 +116,7 @@ const verifyOtp = async (payload) => {
             });
             // send verification success email
             if (updatedAuth) {
-                const subject = "🎉 Welcome to wisper-service! Your Email is Verified";
+                const subject = "🎉 Welcome to wisper! Your Email is Verified";
                 const name = updatedAuth.person?.name;
                 const path = "./src/app/emailTemplates/verificationSuccess.html";
                 (0, sendEmail_1.sendEmail)(updatedAuth.email, subject, path, { name });
@@ -210,7 +210,7 @@ const resetPassword = async (payload) => {
         });
     });
     // send email
-    const subject = "Your wisper-service Password Has Been Reset 🎉";
+    const subject = "Your wisper Password Has Been Reset 🎉";
     const path = "./src/app/emailTemplates/passwordResetSuccess.html";
     const replacements = { name: auth.person?.name };
     (0, sendEmail_1.sendEmail)(payload.email, subject, path, replacements);

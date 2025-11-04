@@ -1,7 +1,7 @@
 import { log } from "console";
-import app from "./app";
-import config from "./config";
 import { Server } from "http";
+import app from "./app/app";
+import config from "./app/config";
 
 const main = () => {
   const server: Server = app.listen(config.port, () => {

@@ -20,7 +20,7 @@ const login = (0, handleAsyncRequest_1.default)(async (req, res) => {
     };
     if (config_1.default.env === "production")
         cookieOptions.sameSite = "none";
-    res.cookie("wisper-serviceRefreshToken", refreshToken, cookieOptions);
+    res.cookie("refreshToken", refreshToken, cookieOptions);
     (0, sendResponse_1.sendResponse)(res, {
         message: "Logged in successfully!",
         data: { accessToken },
@@ -62,7 +62,7 @@ const changeAccountStatus = (0, handleAsyncRequest_1.default)(async (req, res) =
     });
 });
 const refreshToken = (0, handleAsyncRequest_1.default)(async (req, res) => {
-    const token = req.cookies.wisperRefreshToken;
+    const token = req.cookies.refreshToken;
     const result = await auth_service_1.authServices.refreshToken(token);
     (0, sendResponse_1.sendResponse)(res, {
         message: "Token refreshed successfully!",

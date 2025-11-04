@@ -19,27 +19,11 @@ const login = handleAsyncRequest(async (req: Request, res: Response) => {
 
   if (config.env === "production") cookieOptions.sameSite = "none";
 
-  res.cookie("wisper-serviceRefreshToken", refreshToken, cookieOptions);
+  res.cookie("refreshToken", refreshToken, cookieOptions);
 
   sendResponse(res, {
     message: "Logged in successfully!",
     data: { accessToken },
-  });
-});
-
-const verifyOtp = handleAsyncRequest(async (req: Request, res: Response) => {
-  const result = await authServices.verifyOtp(req.body);
-  sendResponse(res, {
-    message: "OTP verified successfully!",
-    data: result,
-  });
-});
-
-const sendOtp = handleAsyncRequest(async (req: Request, res: Response) => {
-  const result = await authServices.sendOtp(req.body.email);
-  sendResponse(res, {
-    message: "OTP sent successfully!",
-    data: result,
   });
 });
 
@@ -81,7 +65,7 @@ const changeAccountStatus = handleAsyncRequest(
 
 const refreshToken = handleAsyncRequest(
   async (req: TRequest, res: Response) => {
-    const token = req.cookies.wisperRefreshToken;
+    const token = req.cookies.refreshToken;
     const result = await authServices.refreshToken(token);
     sendResponse(res, {
       message: "Token refreshed successfully!",
@@ -91,9 +75,7 @@ const refreshToken = handleAsyncRequest(
 );
 
 export const authController = {
-  verifyOtp,
   login,
-  sendOtp,
   resetPassword,
   changePassword,
   changeAccountStatus,

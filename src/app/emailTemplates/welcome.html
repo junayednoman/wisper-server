@@ -23,8 +23,8 @@
       }
 
       .header {
-        background: #004225;
-        border: 2px solid #004225;
+        background: #168de1;
+        border: 2px solid #168de1;
         color: white;
         text-align: center;
         padding: 30px 20px;
@@ -46,14 +46,14 @@
       .body h2 {
         margin-top: 0;
         font-size: 20px;
-        color: #004225;
+        color: #168de1;
       }
 
       .button {
         display: inline-block;
         margin: 25px 0;
         padding: 14px 28px;
-        background: #004225;
+        background: #168de1;
         color: #ffffff !important;
         text-decoration: none;
         font-weight: bold;
@@ -63,20 +63,16 @@
         transition: background 0.2s ease;
       }
 
-      .button:hover {
-        background: #00663a;
-      }
-
       .code-box {
         margin: 25px auto;
         padding: 15px;
-        background: #f0f4f0;
+        background: #e8f4fc;
         border-radius: 8px;
         text-align: center;
         font-size: 22px;
         font-weight: bold;
         letter-spacing: 5px;
-        color: #004225;
+        color: #168de1;
       }
 
       .footer {
@@ -92,36 +88,36 @@
     <div class="container">
       <!-- Header -->
       <div class="header">
-        <h1>Welcome to wisper-service 🎉</h1>
+        <h1>Welcome to Wisper</h1>
       </div>
 
       <!-- Body -->
       <div class="body">
         <h2>Hi {{name}},</h2>
         <p>
-          Thanks for signing up with <strong>wisper-service</strong>! Enter the OTP
+          Thanks for signing up with <strong>Wisper</strong>! Use the OTP
           below to verify your email and activate your account.
         </p>
 
         <!-- Optional: backup code -->
-        <p>If the button doesn’t work, use this code:</p>
+        <p>The OTP is following:</p>
         <div class="code-box">{{otp}}</div>
 
         <p>
-          This code will expire in <strong>2 minutes</strong>. If you
-          didn’t create an account, you can safely ignore this email.
+          This code will expire in <strong>2 minutes</strong>. If you didn’t
+          create an account, you can safely ignore this email.
         </p>
 
         <p style="margin-top: 25px">
           Cheers,<br />
-          The wisper-service Team
+          The Wisper Team
         </p>
       </div>
 
       <!-- Footer -->
       <div class="footer">
         <p>This is an automated message, please don’t reply.</p>
-        <p>&copy; {{year}} wisper-service. All rights reserved.</p>
+        <p>&copy; {{year}} Wisper. All rights reserved.</p>
       </div>
     </div>
   </body>

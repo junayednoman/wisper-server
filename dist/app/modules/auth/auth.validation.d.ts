@@ -25,8 +25,8 @@ export type TChangePasswordInput = z.infer<typeof changePasswordZod>;
 export declare const changeAccountStatusZod: z.ZodObject<{
     status: z.ZodPipe<z.ZodDefault<z.ZodEnum<{
         ACTIVE: "ACTIVE";
-        DELETED: "DELETED";
         BLOCKED: "BLOCKED";
-    }>>, z.ZodTransform<string, "ACTIVE" | "DELETED" | "BLOCKED">>;
+        DELETED: "DELETED";
+    }>>, z.ZodTransform<string, "ACTIVE" | "BLOCKED" | "DELETED">>;
 }, z.core.$strip>;
 //# sourceMappingURL=auth.validation.d.ts.map

@@ -397,30 +397,32 @@ model Connection {
 }
 
 model Call {
-  id             String            @id @default(uuid())
-  type           CallType
-  mode           CallMode
-  initiatorId    String
-  initiator      Auth              @relation(name: "Initiator", fields: [initiatorId], references: [id])
-  receiverId     String
-  receiver       Auth              @relation(name: "Receiver", fields: [receiverId], references: [id])
-  participantIds String[]
-  roomId         String
-  status         CallStatus
-  startedAt      DateTime          @default(now())
-  endedAt        DateTime?
-  duration       Int
-  participants   CallParticipant[]
+  id           String            @id @default(uuid())
+  type         CallType
+  mode         CallMode
+  initiatorId  String
+  initiator    Auth              @relation(name: "Initiator", fields: [initiatorId], references: [id])
+  receiverId   String
+  receiver     Auth              @relation(name: "Receiver", fields: [receiverId], references: [id])
+  roomId       String
+  status       CallStatus
+  startedAt    DateTime          @default(now())
+  endedAt      DateTime?
+  duration     Int
+  participants CallParticipant[]
 
   @@map("calls")
 }
 
 model CallParticipant {
-  id            String @id @default(uuid())
+  id            String   @id @default(uuid())
   callId        String
-  call          Call   @relation(fields: [callId], references: [id])
+  call          Call     @relation(fields: [callId], references: [id])
   participantId String
-  participant   Auth   @relation(fields: [participantId], references: [id])
+  participant   Auth     @relation(fields: [participantId], references: [id])
+  date          DateTime @default(now())
+
+  @@map("call_participants")
 }
 
 model Wallet {
@@ -428,7 +430,7 @@ model Wallet {
   authId       String        @unique
   auth         Auth          @relation(fields: [authId], references: [id])
   balance      Float
-  date         DateTime
+  createdAt    DateTime      @default(now())
   transactions Transaction[]
 
   @@map("wallets")
