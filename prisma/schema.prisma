@@ -46,6 +46,7 @@ model Auth {
   participatedCalls       CallParticipant[]
   wallet                  Wallet?
   admin                   Admin?
+  reactions               Reaction[]
 
   @@map("auths")
 }
@@ -122,8 +123,19 @@ model Post {
   comment       Comment[]
   complaints    Complaint[]
   status        PostStatus    @default(ACTIVE)
+  reactions     Reaction[]
 
   @@map("posts")
+}
+
+model Reaction {
+  id     String @id @default(uuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+  authId String
+  auth   Auth   @relation(fields: [authId], references: [id])
+
+  @@map("reactions")
 }
 
 model Comment {

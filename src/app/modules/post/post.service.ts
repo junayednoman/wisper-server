@@ -234,8 +234,15 @@ const changePostStatus = async (
       status,
     },
   });
-
-  return result;
+  let message = "";
+  if (result.status === PostStatus.ACTIVE) {
+    message = "Post restored successfully!";
+  } else if (result.status === PostStatus.DELETED) {
+    message = "Post deleted successfully!";
+  } else if (result.status === PostStatus.TRASHED) {
+    message = "Post trashed successfully!";
+  }
+  return { result, message };
 };
 
 export const PostService = {

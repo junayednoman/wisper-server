@@ -5,6 +5,7 @@ import { fileRoutes } from "../modules/uploadFile/uploadFile.routes";
 import { otpRoutes } from "../modules/otp/otp.routes";
 import { personRoutes } from "../modules/person/person.routes";
 import { postRoutes } from "../modules/post/post.routes";
+import { reactionRoutes } from "../modules/reaction/reaction.routes";
 
 const router = Router();
 
@@ -13,6 +14,7 @@ const routes = [
   { path: "/otps", route: otpRoutes },
   { path: "/persons", route: personRoutes },
   { path: "/posts", route: postRoutes },
+  { path: "/reactions", route: reactionRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },
