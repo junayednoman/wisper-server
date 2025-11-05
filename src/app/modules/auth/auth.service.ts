@@ -1,4 +1,4 @@
-import { LoginProvider, UserStatus } from "@prisma/client";
+import { LoginProvider, UserRole, UserStatus } from "@prisma/client";
 import ApiError from "../../middlewares/classes/ApiError";
 import prisma from "../../utils/prisma";
 import { sendEmail } from "../../utils/sendEmail";
@@ -159,6 +159,14 @@ const changePassword = async (
 };
 
 const changeAccountStatus = async (userId: string, status: UserStatus) => {
+  const auth = await prisma.auth.findUniqueOrThrow({
+    where: {
+      id: userId,
+    },
+  });
+  if (auth.role === UserRole.ADMIN)
+    throw new ApiError(400, "Admin account cannot be changed!");
+
   await prisma.auth.update({
     where: {
       id: userId,

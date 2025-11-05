@@ -15,6 +15,7 @@ model Auth {
   role                    UserRole
   status                  UserStatus               @default(PENDING)
   loginProvider           LoginProvider            @default(EMAIL)
+  allowNotifications      Boolean                  @default(true)
   fcmToken                String?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
@@ -23,6 +24,7 @@ model Auth {
   business                Business?
   comments                Comment[]
   resumes                 Resume[]
+  posts                   Post[]
   jobs                    Job[]
   chats                   Chat[]
   participatedChats       ChatParticipant[]
@@ -109,7 +111,8 @@ model Business {
 model Post {
   id            String        @id @default(uuid())
   authorId      String
-  caption       String
+  author        Auth          @relation(fields: [authorId], references: [id])
+  caption       String?
   images        String[]
   views         Int           @default(0)
   isSponsored   Boolean       @default(false)
@@ -117,7 +120,8 @@ model Post {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   comment       Comment[]
-  Complaint     Complaint[]
+  complaints    Complaint[]
+  status        PostStatus    @default(ACTIVE)
 
   @@map("posts")
 }
@@ -466,6 +470,12 @@ model Legal {
   updatedAt          DateTime
 
   @@map("legals")
+}
+
+enum PostStatus {
+  ACTIVE
+  TRASHED
+  DELETED
 }
 
 enum TransactionType {

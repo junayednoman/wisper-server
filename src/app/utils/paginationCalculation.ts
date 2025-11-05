@@ -1,4 +1,4 @@
-export type TOptions = {
+export type TPaginationOptions = {
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -17,7 +17,7 @@ export const calculatePagination = ({
   limit = 10,
   sortBy,
   orderBy,
-}: TOptions): TReturnOptions => {
+}: TPaginationOptions): TReturnOptions => {
   const take = Number(limit);
   const skip = Number(page - 1) * take;
 

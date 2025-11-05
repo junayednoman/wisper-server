@@ -1,4 +1,4 @@
-export type TOptions = {
+export type TPaginationOptions = {
     page?: number;
     limit?: number;
     sortBy?: string;
@@ -11,5 +11,5 @@ export type TReturnOptions = {
     sortBy?: string;
     orderBy?: "asc" | "desc";
 };
-export declare const calculatePagination: ({ page, limit, sortBy, orderBy, }: TOptions) => TReturnOptions;
+export declare const calculatePagination: ({ page, limit, sortBy, orderBy, }: TPaginationOptions) => TReturnOptions;
 //# sourceMappingURL=paginationCalculation.d.ts.map

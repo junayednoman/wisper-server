@@ -15,7 +15,6 @@ const globalErrorHandler = (
   let message = "Something went wrong!";
   let error = err;
   const stack = err.stack;
-
   if (err instanceof Prisma.PrismaClientValidationError) {
     status = 422;
     message = "Validation error!";
