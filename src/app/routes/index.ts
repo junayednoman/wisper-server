@@ -7,6 +7,7 @@ import { personRoutes } from "../modules/person/person.routes";
 import { postRoutes } from "../modules/post/post.routes";
 import { reactionRoutes } from "../modules/reaction/reaction.routes";
 import { commentRoutes } from "../modules/comment/comment.routes";
+import { resumeRoutes } from "../modules/resume/resume.routes";
 
 const router = Router();
 
@@ -17,6 +18,7 @@ const routes = [
   { path: "/posts", route: postRoutes },
   { path: "/reactions", route: reactionRoutes },
   { path: "/comments", route: commentRoutes },
+  { path: "/resumes", route: resumeRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },

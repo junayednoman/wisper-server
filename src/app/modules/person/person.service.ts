@@ -174,6 +174,14 @@ const getMyProfile = async (id: string) => {
           phone: true,
           title: true,
           industry: true,
+          defaultResume: {
+            select: {
+              name: true,
+              file: true,
+              fileSize: true,
+              createdAt: true,
+            },
+          },
           address: true,
         },
       },

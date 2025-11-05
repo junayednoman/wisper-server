@@ -87,7 +87,7 @@ model Person {
   industry        String
   image           String?
   title           String?
-  defaultResumeId String?
+  defaultResumeId String?  @unique
   defaultResume   Resume?  @relation(fields: [defaultResumeId], references: [id])
   address         String?
   updatedAt       DateTime @updatedAt
@@ -159,7 +159,7 @@ model Resume {
   file      String
   fileSize  String
   createdAt DateTime @default(now())
-  person    Person[]
+  person    Person?
 
   @@map("resumes")
 }
