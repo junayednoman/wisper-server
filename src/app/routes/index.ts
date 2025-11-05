@@ -6,6 +6,7 @@ import { otpRoutes } from "../modules/otp/otp.routes";
 import { personRoutes } from "../modules/person/person.routes";
 import { postRoutes } from "../modules/post/post.routes";
 import { reactionRoutes } from "../modules/reaction/reaction.routes";
+import { commentRoutes } from "../modules/comment/comment.routes";
 
 const router = Router();
 
@@ -15,6 +16,7 @@ const routes = [
   { path: "/persons", route: personRoutes },
   { path: "/posts", route: postRoutes },
   { path: "/reactions", route: reactionRoutes },
+  { path: "/comments", route: commentRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },

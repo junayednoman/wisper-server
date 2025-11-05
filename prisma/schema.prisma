@@ -145,6 +145,7 @@ model Comment {
   postId    String
   post      Post     @relation(fields: [postId], references: [id])
   text      String
+  isEdited  Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@map("comments")
