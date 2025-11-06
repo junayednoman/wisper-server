@@ -9,6 +9,7 @@ import { reactionRoutes } from "../modules/reaction/reaction.routes";
 import { commentRoutes } from "../modules/comment/comment.routes";
 import { resumeRoutes } from "../modules/resume/resume.routes";
 import { businessRoutes } from "../modules/business/business.routes";
+import { jobRoutes } from "../modules/job/job.routes";
 
 const router = Router();
 
@@ -21,6 +22,7 @@ const routes = [
   { path: "/comments", route: commentRoutes },
   { path: "/resumes", route: resumeRoutes },
   { path: "/businesses", route: businessRoutes },
+  { path: "/jobs", route: jobRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },

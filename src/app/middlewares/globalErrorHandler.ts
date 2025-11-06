@@ -15,6 +15,7 @@ const globalErrorHandler = (
   let message = "Something went wrong!";
   let error = err;
   const stack = err.stack;
+
   if (err instanceof Prisma.PrismaClientValidationError) {
     status = 422;
     message = "Validation error!";
@@ -52,13 +53,20 @@ const globalErrorHandler = (
         message = `${modelName} is associated with other data!`;
         status = 409;
       }
-
       error = err.meta;
     }
   } else if (err.name === "ZodError") {
     status = 422;
     message = err.issues[0]?.message || "Validation error!";
     error = err.issues;
+
+    if (error[0].code === "invalid_type") {
+      message = `${error[0].path[0]} must be a ${error[0].expected}!`;
+    } else if (error[0].code === "invalid_value") {
+      const secondPartMessage = `Invalid ${error[0].path[0]}! Expected one of ${error[0].values.join(" | ")}`;
+
+      message = secondPartMessage;
+    }
   } else if (err instanceof ApiError) {
     status = err.statusCode;
     message = err.message;
