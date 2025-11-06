@@ -13,3 +13,12 @@ export const businessSignupZod = z.object({
 });
 
 export type TBusinessSignup = z.infer<typeof businessSignupZod>;
+
+export const updateBusinessProfileZod = z.object({
+  name: z.string().min(2, "Name is too short").optional(),
+  phone: z.string().optional(),
+  industry: z.string().min(2, "Industry is too short").optional(),
+  address: z.string().min(2, "Address is too short").optional(),
+});
+
+export type TUpdateBusinessProfile = z.infer<typeof updateBusinessProfileZod>;

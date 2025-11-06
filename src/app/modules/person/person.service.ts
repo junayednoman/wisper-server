@@ -1,14 +1,10 @@
-import { Prisma, UserRole, UserStatus } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import prisma from "../../utils/prisma";
 import { TPersonSignUp, TUpdatePersonProfile } from "./person.validation";
 import ApiError from "../../middlewares/classes/ApiError";
 import bcrypt from "bcrypt";
 import generateOTP from "../../utils/generateOTP";
 import { sendEmail } from "../../utils/sendEmail";
-import {
-  calculatePagination,
-  TPaginationOptions,
-} from "../../utils/paginationCalculation";
 import { TFile } from "../../interface/file.interface";
 import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
 
@@ -86,56 +82,11 @@ const signUp = async (payload: TPersonSignUp) => {
   return result;
 };
 
-const getAll = async (options: TPaginationOptions) => {
-  const andConditions: Prisma.AuthWhereInput[] = [];
-
-  andConditions.push({
-    role: UserRole.PERSON,
-  });
-
-  const whereConditions: Prisma.AuthWhereInput =
-    andConditions.length > 0 ? { AND: andConditions } : {};
-
-  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
-  const personAuths = await prisma.auth.findMany({
-    where: whereConditions,
-    select: {
-      id: true,
-      createdAt: true,
-      person: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-          phone: true,
-          title: true,
-          industry: true,
-          address: true,
-        },
-      },
-    },
-    skip,
-    take,
-    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
-  });
-
-  const total = await prisma.auth.count({
-    where: whereConditions,
-  });
-
-  const meta = {
-    page,
-    limit: take,
-    total,
-  };
-  return { meta, personAuths };
-};
-
 const getSingle = async (id: string) => {
   const result = await prisma.auth.findUnique({
     where: {
       id: id,
+      role: UserRole.PERSON,
     },
     select: {
       id: true,
@@ -154,7 +105,27 @@ const getSingle = async (id: string) => {
       },
     },
   });
-  return result;
+
+  const recommendations = await prisma.recommendation.findMany({
+    where: {
+      receiverId: id,
+    },
+    select: {
+      id: true,
+      receiver: {
+        select: {
+          person: {
+            select: {
+              image: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return { auth: result, recommendations };
 };
 
 const getMyProfile = async (id: string) => {
@@ -188,7 +159,26 @@ const getMyProfile = async (id: string) => {
     },
   });
 
-  return result;
+  const recommendations = await prisma.recommendation.findMany({
+    where: {
+      receiverId: id,
+    },
+    select: {
+      id: true,
+      receiver: {
+        select: {
+          person: {
+            select: {
+              image: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return { auth: result, recommendations };
 };
 
 const updateMyProfile = async (
@@ -226,34 +216,10 @@ const updateProfileImage = async (email: string, file: TFile) => {
   return result;
 };
 
-const toggleNotificationPermission = async (id: string) => {
-  const auth = await prisma.auth.findUniqueOrThrow({
-    where: {
-      id,
-    },
-  });
-
-  const result = await prisma.auth.update({
-    where: {
-      id,
-    },
-    data: {
-      allowNotifications: !auth.allowNotifications,
-    },
-    select: {
-      id: true,
-      allowNotifications: true,
-    },
-  });
-  return result;
-};
-
 export const personServices = {
   signUp,
-  getAll,
   getSingle,
   getMyProfile,
   updateMyProfile,
   updateProfileImage,
-  toggleNotificationPermission,
 };

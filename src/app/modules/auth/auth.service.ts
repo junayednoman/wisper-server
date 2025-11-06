@@ -1,4 +1,4 @@
-import { LoginProvider, UserRole, UserStatus } from "@prisma/client";
+import { LoginProvider, Prisma, UserRole, UserStatus } from "@prisma/client";
 import ApiError from "../../middlewares/classes/ApiError";
 import prisma from "../../utils/prisma";
 import { sendEmail } from "../../utils/sendEmail";
@@ -12,6 +12,10 @@ import jsonwebtoken, { Secret } from "jsonwebtoken";
 import config from "../../config";
 import jwt from "jsonwebtoken";
 import { TAuthUser } from "../../interface/global.interface";
+import {
+  calculatePagination,
+  TPaginationOptions,
+} from "../../utils/paginationCalculation";
 
 const login = async (payload: TLoginInput) => {
   const auth = await prisma.auth.findUniqueOrThrow({
@@ -78,6 +82,70 @@ const login = async (payload: TLoginInput) => {
     accessToken,
     refreshToken,
   };
+};
+
+const getAll = async (options: TPaginationOptions) => {
+  const andConditions: Prisma.AuthWhereInput[] = [];
+
+  andConditions.push({
+    OR: [
+      {
+        role: UserRole.PERSON,
+      },
+      {
+        role: UserRole.BUSINESS,
+      },
+    ],
+  });
+
+  const whereConditions: Prisma.AuthWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+  const personAuths = await prisma.auth.findMany({
+    where: whereConditions,
+    select: {
+      id: true,
+      createdAt: true,
+      person: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          phone: true,
+          title: true,
+          industry: true,
+          address: true,
+        },
+      },
+      business: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          phone: true,
+          industry: true,
+          address: true,
+        },
+      },
+    },
+    skip,
+    take,
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+  });
+
+  const total = await prisma.auth.count({
+    where: whereConditions,
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+  return { meta, personAuths };
 };
 
 const resetPassword = async (payload: TResetPasswordInput) => {
@@ -215,10 +283,34 @@ const refreshToken = async (token: string) => {
   return { accessToken };
 };
 
+const toggleNotificationPermission = async (id: string) => {
+  const auth = await prisma.auth.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+
+  const result = await prisma.auth.update({
+    where: {
+      id,
+    },
+    data: {
+      allowNotifications: !auth.allowNotifications,
+    },
+    select: {
+      id: true,
+      allowNotifications: true,
+    },
+  });
+  return result;
+};
+
 export const authServices = {
   login,
+  getAll,
   refreshToken,
   resetPassword,
   changePassword,
   changeAccountStatus,
+  toggleNotificationPermission,
 };

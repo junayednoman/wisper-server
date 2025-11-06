@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { authServices } from "./auth.service";
 import config from "../../config";
 import { TRequest } from "../../interface/global.interface";
+import pick from "../../utils/pick";
 
 const login = handleAsyncRequest(async (req: Request, res: Response) => {
   const result = await authServices.login(req.body);
@@ -24,6 +25,15 @@ const login = handleAsyncRequest(async (req: Request, res: Response) => {
   sendResponse(res, {
     message: "Logged in successfully!",
     data: { accessToken },
+  });
+});
+
+const getAll = handleAsyncRequest(async (req: TRequest, res: Response) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await authServices.getAll(options);
+  sendResponse(res, {
+    message: "Users retrieved successfully!",
+    data: result,
   });
 });
 
@@ -74,10 +84,24 @@ const refreshToken = handleAsyncRequest(
   }
 );
 
+const toggleNotificationPermission = handleAsyncRequest(
+  async (req: TRequest, res: Response) => {
+    const result = await authServices.toggleNotificationPermission(
+      req.user!.id
+    );
+    sendResponse(res, {
+      message: "Notification permission updated successfully!",
+      data: result,
+    });
+  }
+);
+
 export const authController = {
   login,
+  getAll,
   resetPassword,
   changePassword,
   changeAccountStatus,
   refreshToken,
+  toggleNotificationPermission,
 };

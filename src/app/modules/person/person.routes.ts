@@ -8,7 +8,6 @@ import { upload } from "../../utils/awss3";
 
 const router = Router();
 
-router.get("/", authorize(UserRole.ADMIN), personController.getAll);
 router.get(
   "/profile",
   authorize(UserRole.PERSON),
@@ -30,11 +29,6 @@ router.patch(
   authorize(UserRole.PERSON),
   upload.single("image"),
   personController.updateProfileImage
-);
-router.patch(
-  "/notification-permission",
-  authorize(UserRole.PERSON),
-  personController.toggleNotificationPermission
 );
 
 export const personRoutes = router;

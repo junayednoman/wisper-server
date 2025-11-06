@@ -21,7 +21,7 @@ router.post(
   handleZodValidation(personSignupZod),
   personController.signUp
 );
-
+router.get("/", authorize(UserRole.ADMIN), authController.getAll);
 router.post(
   "/business/signup",
   handleZodValidation(businessSignupZod),
@@ -55,5 +55,11 @@ router.patch(
 );
 
 router.get("/refresh-token", authController.refreshToken);
+
+router.patch(
+  "/notification-permission",
+  authorize(UserRole.PERSON),
+  authController.toggleNotificationPermission
+);
 
 export const authRoutes = router;

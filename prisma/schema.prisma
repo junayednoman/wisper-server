@@ -356,7 +356,6 @@ model Recommendation {
   text            String
   rating          Float
   createdAt       DateTime @default(now())
-  authId          String?
 
   @@map("recommendations")
 }

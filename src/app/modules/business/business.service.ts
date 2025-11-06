@@ -1,10 +1,12 @@
 import { UserRole, UserStatus } from "@prisma/client";
 import prisma from "../../utils/prisma";
-import { TBusinessSignup } from "./business.validation";
+import { TBusinessSignup, TUpdateBusinessProfile } from "./business.validation";
 import ApiError from "../../middlewares/classes/ApiError";
 import bcrypt from "bcrypt";
 import generateOTP from "../../utils/generateOTP";
 import { sendEmail } from "../../utils/sendEmail";
+import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
+import { TFile } from "../../interface/file.interface";
 
 const signUp = async (payload: TBusinessSignup) => {
   const existingUser = await prisma.auth.findUnique({
@@ -81,6 +83,134 @@ const signUp = async (payload: TBusinessSignup) => {
   return result;
 };
 
+const getSingle = async (id: string) => {
+  const result = await prisma.auth.findUnique({
+    where: {
+      id: id,
+      role: UserRole.BUSINESS,
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      business: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          phone: true,
+          industry: true,
+          address: true,
+        },
+      },
+    },
+  });
+
+  const recommendations = await prisma.recommendation.findMany({
+    where: {
+      receiverId: id,
+    },
+    select: {
+      id: true,
+      receiver: {
+        select: {
+          business: {
+            select: {
+              image: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return { auth: result, recommendations };
+};
+
+const getMyProfile = async (id: string) => {
+  const result = await prisma.auth.findUnique({
+    where: {
+      id: id,
+      role: UserRole.BUSINESS,
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      business: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          phone: true,
+          industry: true,
+          address: true,
+        },
+      },
+    },
+  });
+
+  const recommendations = await prisma.recommendation.findMany({
+    where: {
+      receiverId: id,
+    },
+    select: {
+      id: true,
+      receiver: {
+        select: {
+          business: {
+            select: {
+              image: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return { auth: result, recommendations };
+};
+
+const updateMyProfile = async (
+  email: string,
+  payload: TUpdateBusinessProfile
+) => {
+  const result = await prisma.business.update({
+    where: {
+      email,
+    },
+    data: payload,
+  });
+
+  return result;
+};
+
+const updateProfileImage = async (email: string, file: TFile) => {
+  if (!file) throw new Error("No file provided!");
+  const business = await prisma.business.findUnique({
+    where: {
+      email,
+    },
+  });
+  const image = await uploadToS3(file);
+  const result = await prisma.business.update({
+    where: {
+      email,
+    },
+    data: {
+      image,
+    },
+  });
+  if (result && business?.image) await deleteFromS3(business.image);
+  return result;
+};
+
 export const businessServices = {
   signUp,
+  getSingle,
+  getMyProfile,
+  updateMyProfile,
+  updateProfileImage,
 };

@@ -3,7 +3,6 @@ import handleAsyncRequest from "../../utils/handleAsyncRequest";
 import { sendResponse } from "../../utils/sendResponse";
 import { Response } from "express";
 import { personServices } from "./person.service";
-import pick from "../../utils/pick";
 import { TFile } from "../../interface/file.interface";
 
 const signUp = handleAsyncRequest(async (req: TRequest, res: Response) => {
@@ -12,15 +11,6 @@ const signUp = handleAsyncRequest(async (req: TRequest, res: Response) => {
     message: "User created successfully!",
     data: result,
     status: 201,
-  });
-});
-
-const getAll = handleAsyncRequest(async (req: TRequest, res: Response) => {
-  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
-  const result = await personServices.getAll(options);
-  sendResponse(res, {
-    message: "Users retrieved successfully!",
-    data: result,
   });
 });
 
@@ -68,24 +58,10 @@ const updateProfileImage = handleAsyncRequest(
   }
 );
 
-const toggleNotificationPermission = handleAsyncRequest(
-  async (req: TRequest, res: Response) => {
-    const result = await personServices.toggleNotificationPermission(
-      req.user!.id
-    );
-    sendResponse(res, {
-      message: "Notification permission updated successfully!",
-      data: result,
-    });
-  }
-);
-
 export const personController = {
   signUp,
-  getAll,
   getSingle,
   getMyProfile,
   updateMyProfile,
   updateProfileImage,
-  toggleNotificationPermission,
 };
