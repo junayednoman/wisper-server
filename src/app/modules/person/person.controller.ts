@@ -4,6 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { Response } from "express";
 import { personServices } from "./person.service";
 import { TFile } from "../../interface/file.interface";
+import pick from "../../utils/pick";
 
 const signUp = handleAsyncRequest(async (req: TRequest, res: Response) => {
   const result = await personServices.signUp(req.body);
@@ -58,10 +59,20 @@ const updateProfileImage = handleAsyncRequest(
   }
 );
 
+const getUserRoles = handleAsyncRequest(async (req: TRequest, res) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await personServices.getUserRoles(options);
+  sendResponse(res, {
+    message: "Roles retrieved successfully!",
+    data: result,
+  });
+});
+
 export const personController = {
   signUp,
   getSingle,
   getMyProfile,
   updateMyProfile,
   updateProfileImage,
+  getUserRoles,
 };

@@ -14,6 +14,11 @@ router.get(
   personController.getMyProfile
 );
 router.get(
+  "/roles",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  personController.getUserRoles
+);
+router.get(
   "/:id",
   authorize(UserRole.ADMIN, UserRole.PERSON, UserRole.BUSINESS),
   personController.getSingle

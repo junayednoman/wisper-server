@@ -7,6 +7,10 @@ import generateOTP from "../../utils/generateOTP";
 import { sendEmail } from "../../utils/sendEmail";
 import { TFile } from "../../interface/file.interface";
 import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
+import {
+  calculatePagination,
+  TPaginationOptions,
+} from "../../utils/paginationCalculation";
 
 const signUp = async (payload: TPersonSignUp) => {
   const existingUser = await prisma.auth.findUnique({
@@ -216,10 +220,52 @@ const updateProfileImage = async (email: string, file: TFile) => {
   return result;
 };
 
+const getUserRoles = async (options: TPaginationOptions) => {
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+  const roles = await prisma.auth.findMany({
+    where: {
+      role: UserRole.PERSON,
+    },
+    select: {
+      id: true,
+      person: {
+        select: {
+          name: true,
+          image: true,
+          title: true,
+        },
+      },
+      _count: {
+        select: {
+          posts: true,
+          receivedRecommendations: true,
+        },
+      },
+    },
+    skip,
+    take,
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+  });
+
+  const total = await prisma.auth.count({
+    where: {
+      role: UserRole.PERSON,
+    },
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+  return { meta, roles };
+};
+
 export const personServices = {
   signUp,
   getSingle,
   getMyProfile,
   updateMyProfile,
   updateProfileImage,
+  getUserRoles,
 };
