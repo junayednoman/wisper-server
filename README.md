@@ -1,6 +1,6 @@
 # 🕊️ Wisper Backend
 
-Wisper is a **professional networking platform** that connects job seekers, recruiters, freelancers, consultants, and industry experts.
+Wisper is a **professional networking platform** that connects job seekers, recruiters, and industry experts.
 This backend powers all core features — from authentication and job management to messaging and file uploads — built for **scalability, security, and performance**.
 
 ---
@@ -35,18 +35,6 @@ This backend powers all core features — from authentication and job management
 │   ├── interface/           # TypeScript interfaces
 │   ├── middlewares/         # Express middlewares (auth, error handling)
 │   ├── modules/             # Main modules grouped by domain
-│   │   ├── admin/
-│   │   ├── auth/
-│   │   ├── business/
-│   │   ├── comment/
-│   │   ├── favorite/
-│   │   ├── job/
-│   │   ├── otp/
-│   │   ├── person/
-│   │   ├── post/
-│   │   ├── reaction/
-│   │   ├── resume/
-│   │   └── uploadFile/
 │   ├── routes/              # Express route definitions
 │   ├── utils/               # Helper functions
 │   ├── validation/          # Zod validation schemas

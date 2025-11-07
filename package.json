@@ -11,7 +11,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/app/server.js",
-    "seedAdmin": "ts-node-dev --respawn --transpile-only src/seedAdmin.ts"
+    "seed:admin": "ts-node-dev --respawn --transpile-only src/seedAdmin.ts"
   },
   "keywords": [],
   "author": "",
