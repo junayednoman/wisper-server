@@ -125,13 +125,16 @@ All incoming requests are validated with **Zod** to ensure data accuracy and pre
 
 ## 🧰 Scripts
 
-| Command              | Description                   |
-| -------------------- | ----------------------------- |
-| `npm run dev`        | Start dev server with nodemon |
-| `npm run build`      | Compile TypeScript            |
-| `npm start`          | Start production build        |
-| `npm run lint`       | Run ESLint                    |
-| `npm run seed:admin` | Create default admin user     |
+| Command                | Description                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| `npm run dev`          | Start the development server using **ts-node-dev** with auto-restart on changes     |
+| `npm run build`        | Compile TypeScript files into JavaScript (`dist` folder)                            |
+| `npm start`            | Start the production server using the compiled JavaScript from `dist/app/server.js` |
+| `npm run lint`         | Check for code style and syntax issues using ESLint                                 |
+| `npm run lint:fix`     | Automatically fix linting issues using ESLint                                       |
+| `npm run format`       | Format all TypeScript files using Prettier                                          |
+| `npm run format:check` | Check if files are formatted according to Prettier rules                            |
+| `npm run seed:admin`   | Seed the database with the default admin account using ts-node-dev                  |
 
 ---
 
