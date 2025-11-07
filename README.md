@@ -138,4 +138,4 @@ All incoming requests are validated with **Zod** to ensure data accuracy and pre
 
 ---
 
-**Made with ❤️ by Junayed Noman**
+**Made with ❤️ by [Junayed Noman](https://junayednoman.vercel.app)**
