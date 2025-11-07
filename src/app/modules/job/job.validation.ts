@@ -13,5 +13,5 @@ export const createJobSchema = z.object({
   requirements: z.array(z.string().min(3)).nonempty(),
   responsibilities: z.array(z.string().min(3)).nonempty(),
   applicationType: z.enum(["EMAIL", "EXTERNAL", "CHAT"]),
-  applicationLink: z.string().url(),
+  applicationLink: z.string().url().optional(),
 });

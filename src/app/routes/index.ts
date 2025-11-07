@@ -10,6 +10,7 @@ import { commentRoutes } from "../modules/comment/comment.routes";
 import { resumeRoutes } from "../modules/resume/resume.routes";
 import { businessRoutes } from "../modules/business/business.routes";
 import { jobRoutes } from "../modules/job/job.routes";
+import { favoriteRoutes } from "../modules/favorite/favorite.routes";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ const routes = [
   { path: "/resumes", route: resumeRoutes },
   { path: "/businesses", route: businessRoutes },
   { path: "/jobs", route: jobRoutes },
+  { path: "/favorites", route: favoriteRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },

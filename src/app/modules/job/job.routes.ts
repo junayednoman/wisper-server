@@ -13,5 +13,17 @@ router.post(
   handleZodValidation(createJobSchema),
   jobController.createJob
 );
+router.get(
+  "/",
+  authorize(UserRole.BUSINESS, UserRole.PERSON, UserRole.ADMIN),
+  jobController.getAllJobs
+);
+router.patch(
+  "/:id",
+  authorize(UserRole.BUSINESS),
+  handleZodValidation(createJobSchema.partial()),
+  jobController.updateJob
+);
+router.delete("/:id", authorize(UserRole.BUSINESS), jobController.deleteJob);
 
 export const jobRoutes = router;

@@ -47,6 +47,7 @@ model Auth {
   wallet                  Wallet?
   admin                   Admin?
   reactions               Reaction[]
+  favoriteJobs            FavoriteJob[]
 
   @@map("auths")
 }
@@ -173,18 +174,29 @@ model Job {
   type             JobType
   experienceLevel  JobExperienceLevel
   compensationType JobCompensationType
-  company          Float
+  salary           Float
   location         JobLocation
   industry         String
   qualification    JobQualification
   requirements     String[]
-  responsibilities String
+  responsibilities String[]
   applicationType  JobApplicationType
   applicationLink  String?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
+  favorites        FavoriteJob[]
 
   @@map("jobs")
+}
+
+model FavoriteJob {
+  id     String @id @default(uuid())
+  jobId  String
+  job    Job    @relation(fields: [jobId], references: [id])
+  authId String
+  auth   Auth   @relation(fields: [authId], references: [id])
+
+  @@map("favorite_jobs")
 }
 
 model Class {
@@ -573,7 +585,7 @@ enum ChatType {
 
 enum JobApplicationType {
   EMAIL
-  LINK
+  EXTERNAL
   CHAT
 }
 
