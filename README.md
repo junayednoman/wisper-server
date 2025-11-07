@@ -35,6 +35,10 @@ This backend powers all core features — from authentication and job management
 │   ├── interface/           # TypeScript interfaces
 │   ├── middlewares/         # Express middlewares (auth, error handling)
 │   ├── modules/             # Main modules grouped by domain
+│   │   ├── exampleModule 1/
+│   │   ├── exampleModule 2/
+│   │   ├── exampleModule 3/
+│   │   ├── exampleModule 4/
 │   ├── routes/              # Express route definitions
 │   ├── utils/               # Helper functions
 │   ├── validation/          # Zod validation schemas
