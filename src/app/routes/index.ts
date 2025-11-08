@@ -12,6 +12,8 @@ import { businessRoutes } from "../modules/business/business.routes";
 import { jobRoutes } from "../modules/job/job.routes";
 import { favoriteRoutes } from "../modules/favorite/favorite.routes";
 import { connectionRoutes } from "../modules/connection/connection.routes";
+import { chatRoutes } from "../modules/chat/chat.routes";
+import { recommendationRoutes } from "../modules/recommendation/recommendation.routes";
 
 const router = Router();
 
@@ -27,6 +29,8 @@ const routes = [
   { path: "/jobs", route: jobRoutes },
   { path: "/favorites", route: favoriteRoutes },
   { path: "/connections", route: connectionRoutes },
+  { path: "/chats", route: chatRoutes },
+  { path: "/recommendations", route: recommendationRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },

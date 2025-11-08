@@ -48,6 +48,7 @@ model Auth {
   admin                   Admin?
   reactions               Reaction[]
   favoriteJobs            FavoriteJob[]
+  recommendations         Recommendation[]
 
   @@map("auths")
 }
@@ -200,14 +201,15 @@ model FavoriteJob {
 }
 
 model Class {
-  id              String   @id @default(uuid())
+  id              String           @id @default(uuid())
   name            String
   description     String?
-  isPrivate       Boolean  @default(true)
-  allowInvitation Boolean  @default(false)
+  isPrivate       Boolean          @default(true)
+  allowInvitation Boolean          @default(false)
   image           String?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime         @default(now())
   chat            Chat?
+  recommendations Recommendation[]
 
   @@map("classes")
 }
@@ -365,9 +367,13 @@ model Recommendation {
   receiverId      String?
   receiver        Auth?    @relation(name: "RecommendationReceiver", fields: [receiverId], references: [id])
   classReceiverId String?
+  classReceiver   Class?   @relation(fields: [classReceiverId], references: [id])
   text            String
   rating          Float
   createdAt       DateTime @default(now())
+  auth            Auth?    @relation(fields: [authId], references: [id])
+  authId          String?
+  classId         String?
 
   @@map("recommendations")
 }
