@@ -1,0 +1,203 @@
+import { ChatRole, ChatType } from "@prisma/client";
+import ApiError from "../../middlewares/classes/ApiError";
+import prisma from "../../utils/prisma";
+import { TCreateGroup, TUpdateGroupData } from "./group.validation";
+import { TFile } from "../../interface/file.interface";
+import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
+
+const createGroup = async (payload: TCreateGroup, authId: string) => {
+  const { members, ...groupPayload } = payload;
+  const result = await prisma.$transaction(async tn => {
+    const newGroup = await tn.group.create({
+      data: groupPayload,
+    });
+
+    const chatPayload = {
+      type: ChatType.GROUP,
+      groupId: newGroup.id,
+    };
+    const newChat = await tn.chat.create({
+      data: chatPayload,
+    });
+
+    const memberPayloads = [];
+    for (const memberId of members) {
+      const member = await prisma.auth.findUnique({
+        where: {
+          id: memberId,
+        },
+      });
+      if (!member) throw new ApiError(400, `Invalid member id!: ${memberId}`);
+
+      memberPayloads.push({
+        chatId: newChat.id,
+        authId: memberId,
+        role: ChatRole.MEMBER,
+      });
+    }
+    memberPayloads.push({
+      chatId: newChat.id,
+      authId,
+      role: ChatRole.ADMIN,
+    });
+
+    await tn.chatParticipant.createMany({
+      data: memberPayloads,
+    });
+
+    return newGroup;
+  });
+
+  return result;
+};
+
+const getSingleGroup = async (id: string) => {
+  const result = await prisma.group.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      createdAt: true,
+      image: true,
+      chat: {
+        select: {
+          _count: {
+            select: {
+              participants: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return result;
+};
+
+const addGroupMember = async (
+  groupId: string,
+  memberId: string,
+  authId: string
+) => {
+  const group = await prisma.group.findUniqueOrThrow({
+    where: {
+      id: groupId,
+    },
+    select: {
+      allowInvitation: true,
+      chat: {
+        select: {
+          id: true,
+          participants: {
+            select: {
+              authId: true,
+              role: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const isAdmin = group.chat?.participants.find(
+    p => p.authId === authId && p.role === ChatRole.ADMIN
+  );
+
+  if (!group.allowInvitation && !isAdmin)
+    throw new ApiError(403, "Group is not open to invitation!");
+
+  const isExist = group.chat?.participants.find(p => p.authId === memberId);
+  if (isExist) throw new ApiError(400, "Member already exist!");
+
+  const memberPayload = {
+    chatId: group.chat?.id as string,
+    authId: memberId,
+    role: ChatRole.MEMBER,
+  };
+
+  const result = await prisma.chatParticipant.create({
+    data: memberPayload,
+  });
+
+  return result;
+};
+
+const changeGroupImage = async (groupId: string, file: TFile) => {
+  if (!file) throw new ApiError(400, "File is required!");
+  const group = await prisma.group.findUniqueOrThrow({
+    where: {
+      id: groupId,
+    },
+  });
+
+  const image = await uploadToS3(file);
+  const result = await prisma.group.update({
+    where: {
+      id: groupId,
+    },
+    data: {
+      image,
+    },
+  });
+
+  if (result && group.image) await deleteFromS3(group.image);
+  return result;
+};
+
+const updateGroupData = async (groupId: string, data: TUpdateGroupData) => {
+  const result = await prisma.group.update({
+    where: {
+      id: groupId,
+    },
+    data,
+  });
+  return result;
+};
+
+const toggleGroupVisibility = async (groupId: string) => {
+  const group = await prisma.group.findUniqueOrThrow({
+    where: {
+      id: groupId,
+    },
+  });
+
+  const result = await prisma.group.update({
+    where: {
+      id: groupId,
+    },
+    data: {
+      isPrivate: !group.isPrivate,
+    },
+  });
+  return result;
+};
+
+const toggleGroupInvitationAccess = async (groupId: string) => {
+  const group = await prisma.group.findUniqueOrThrow({
+    where: {
+      id: groupId,
+    },
+  });
+
+  const result = await prisma.group.update({
+    where: {
+      id: groupId,
+    },
+    data: {
+      allowInvitation: !group.allowInvitation,
+    },
+  });
+  return result;
+};
+
+export const groupServices = {
+  createGroup,
+  getSingleGroup,
+  addGroupMember,
+  changeGroupImage,
+  updateGroupData,
+  toggleGroupVisibility,
+  toggleGroupInvitationAccess,
+};

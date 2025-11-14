@@ -14,6 +14,7 @@ import { favoriteRoutes } from "../modules/favorite/favorite.routes";
 import { connectionRoutes } from "../modules/connection/connection.routes";
 import { chatRoutes } from "../modules/chat/chat.routes";
 import { recommendationRoutes } from "../modules/recommendation/recommendation.routes";
+import { groupRoutes } from "../modules/group/group.routes";
 
 const router = Router();
 
@@ -31,6 +32,7 @@ const routes = [
   { path: "/connections", route: connectionRoutes },
   { path: "/chats", route: chatRoutes },
   { path: "/recommendations", route: recommendationRoutes },
+  { path: "/groups", route: groupRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },

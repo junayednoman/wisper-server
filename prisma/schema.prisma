@@ -236,7 +236,7 @@ model Chat {
   classId                 String?                  @unique
   class                   Class?                   @relation(fields: [classId], references: [id])
   updatedAt               DateTime                 @updatedAt
-  Auth                    Auth?                    @relation(fields: [authId], references: [id])
+  auth                    Auth?                    @relation(fields: [authId], references: [id])
   authId                  String?
   participants            ChatParticipant[]
   blockedChatParticipants BlockedChatParticipant[]
@@ -298,16 +298,16 @@ model ChatMute {
 }
 
 model Message {
-  id          String        @id @default(uuid())
-  chatId      String
-  chat        Chat          @relation(fields: [chatId], references: [id])
-  senderId    String
-  sender      Auth          @relation(fields: [senderId], references: [id])
-  text        String
-  file        String?
-  fileType    FileType?     @default(IMAGE)
-  createdAt   DateTime      @default(now())
-  messageSeen MessageSeen[]
+  id           String        @id @default(uuid())
+  chatId       String
+  chat         Chat          @relation(fields: [chatId], references: [id])
+  senderId     String
+  sender       Auth          @relation(fields: [senderId], references: [id])
+  text         String
+  file         String?
+  fileType     FileType?     @default(IMAGE)
+  createdAt    DateTime      @default(now())
+  messagesSeen MessageSeen[]
 
   @@map("messages")
 }
