@@ -16,7 +16,7 @@ const createGroup = handleAsyncRequest(async (req: TRequest, res) => {
 const getSingleGroup = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await groupServices.getSingleGroup(req.params.id as string);
   sendResponse(res, {
-    message: "Groups retrieved successfully!",
+    message: "Group retrieved successfully!",
     data: result,
   });
 });
