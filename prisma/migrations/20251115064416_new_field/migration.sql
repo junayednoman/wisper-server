@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "public"."chats" ADD COLUMN     "latestMessageAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

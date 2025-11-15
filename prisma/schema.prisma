@@ -26,7 +26,6 @@ model Auth {
   resumes                 Resume[]
   posts                   Post[]
   jobs                    Job[]
-  chats                   Chat[]
   participatedChats       ChatParticipant[]
   blockedChats            BlockedChatParticipant[]
   mutedChats              ChatMute[]
@@ -229,15 +228,13 @@ model Group {
 
 model Chat {
   id                      String                   @id @default(uuid())
-  lastMessageId           String?
   type                    ChatType
   groupId                 String?                  @unique
   group                   Group?                   @relation(fields: [groupId], references: [id])
   classId                 String?                  @unique
   class                   Class?                   @relation(fields: [classId], references: [id])
   updatedAt               DateTime                 @updatedAt
-  auth                    Auth?                    @relation(fields: [authId], references: [id])
-  authId                  String?
+  latestMessageAt         DateTime                 @default(now())
   participants            ChatParticipant[]
   blockedChatParticipants BlockedChatParticipant[]
   chatMutes               ChatMute[]
@@ -256,7 +253,7 @@ model ChatDeletion {
   chat      Chat     @relation(fields: [chatId], references: [id])
   authId    String
   auth      Auth     @relation(fields: [authId], references: [id])
-  createdAt DateTime @default(now())
+  deletedAt DateTime @default(now())
 
   @@map("chat_deletions")
 }
@@ -286,14 +283,15 @@ model BlockedChatParticipant {
 }
 
 model ChatMute {
-  id        String    @id @default(uuid())
-  authId    String
-  auth      Auth      @relation(fields: [authId], references: [id])
-  chatId    String
-  chat      Chat      @relation(fields: [chatId], references: [id])
-  muteUntil MuteUntil
-  mutedAt   DateTime  @default(now())
+  id      String   @id @default(uuid())
+  authId  String
+  auth    Auth     @relation(fields: [authId], references: [id])
+  chatId  String
+  chat    Chat     @relation(fields: [chatId], references: [id])
+  muteFor MuteFor
+  mutedAt DateTime @default(now())
 
+  @@unique([authId, chatId])
   @@map("chat_mutes")
 }
 
@@ -572,7 +570,7 @@ enum FileType {
   DOC
 }
 
-enum MuteUntil {
+enum MuteFor {
   EIGHT_HOURS
   ONE_WEEK
   ALWAYS
