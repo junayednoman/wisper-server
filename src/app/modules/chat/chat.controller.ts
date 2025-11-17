@@ -70,6 +70,17 @@ const unBlockChatParticipant = handleAsyncRequest(
   }
 );
 
+const deleteChat = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await chatService.deleteChat(
+    req.user!.id,
+    req.params.chatId as string
+  );
+  sendResponse(res, {
+    message: "Chat deleted successfully!",
+    data: result,
+  });
+});
+
 export const chatController = {
   createChat,
   getMyChats,
@@ -78,4 +89,5 @@ export const chatController = {
   removeParticipant,
   blockChatParticipant,
   unBlockChatParticipant,
+  deleteChat,
 };

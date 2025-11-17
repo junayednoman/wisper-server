@@ -55,8 +55,20 @@ const getMyChats = async (
   query: Record<string, any>
 ) => {
   const { searchTerm } = query;
+
   const andConditions: Prisma.ChatWhereInput[] = [];
+
   andConditions.push({ participants: { some: { authId } } });
+
+  // filter out deleted chats
+  andConditions.push({
+    chatDeletions: {
+      none: {
+        authId,
+      },
+    },
+  });
+
   if (searchTerm) {
     andConditions.push({
       OR: [
@@ -85,9 +97,12 @@ const getMyChats = async (
       ],
     });
   }
+
   const whereConditions =
     andConditions.length > 0 ? { AND: andConditions } : {};
+
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+
   const chats = await prisma.chat.findMany({
     where: whereConditions,
     select: {
@@ -144,6 +159,7 @@ const getMyChats = async (
     orderBy:
       sortBy && orderBy ? { [sortBy]: orderBy } : { latestMessageAt: "desc" },
   });
+
   const total = await prisma.chat.count({ where: whereConditions });
   const meta = { page, limit: take, total };
   return { meta, chats };
@@ -341,7 +357,33 @@ const unBlockChatParticipant = async (
   return result;
 };
 
-const deleteChat = async (authId: string, chatId: string) => {};
+const deleteChat = async (authId: string, chatId: string) => {
+  await prisma.chat.findUniqueOrThrow({
+    where: {
+      id: chatId,
+    },
+  });
+
+  const existingDeletion = await prisma.chatDeletion.findFirst({
+    where: {
+      authId,
+      chatId,
+    },
+  });
+
+  if (existingDeletion) {
+    throw new ApiError(400, "You have already deleted this chat!");
+  }
+
+  const result = await prisma.chatDeletion.create({
+    data: {
+      authId,
+      chatId,
+    },
+  });
+
+  return result;
+};
 
 export const chatService = {
   createChat,
@@ -351,4 +393,5 @@ export const chatService = {
   removeParticipant,
   blockChatParticipant,
   unBlockChatParticipant,
+  deleteChat,
 };

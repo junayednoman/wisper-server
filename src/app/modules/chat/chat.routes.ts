@@ -58,4 +58,10 @@ router.patch(
   chatController.unBlockChatParticipant
 );
 
+router.delete(
+  "/:chatId",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  chatController.deleteChat
+);
+
 export const chatRoutes = router;
