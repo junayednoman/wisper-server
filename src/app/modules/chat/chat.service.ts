@@ -149,6 +149,7 @@ const getMyChats = async (
                   some: { participant: { authId } },
                 },
               },
+              senderId: { not: authId },
             },
           },
         },

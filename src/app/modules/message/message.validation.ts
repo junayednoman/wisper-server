@@ -21,3 +21,11 @@ export const sendMessageZod = z
   );
 
 export type TSendMessage = z.infer<typeof sendMessageZod>;
+
+export const seenMessagesZod = z.object({
+  messageIds: z
+    .array(z.string().uuid({ message: "Each messageId must be a valid UUID" }))
+    .min(1, { message: "At least one messageId is required" }),
+});
+
+export type TSeenMessages = z.infer<typeof seenMessagesZod>;

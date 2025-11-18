@@ -39,8 +39,17 @@ const updateMessage = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const seenMessages = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await messageService.seenMessages(req.user!.id, req.body);
+  sendResponse(res, {
+    message: "Messages seen successfully!",
+    data: result,
+  });
+});
+
 export const messageController = {
   sendMessage,
   getMessagesByChat,
   updateMessage,
+  seenMessages,
 };
