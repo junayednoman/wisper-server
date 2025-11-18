@@ -296,7 +296,7 @@ const blockChatParticipant = async (
     myParticipant?.chat.type === ChatType.CLASS
   ) {
     if (myParticipant?.role !== ChatRole.ADMIN)
-      throw new ApiError(403, "You are not an admin of this chat!");
+      throw new ApiError(403, "Only admin can block a participant!");
   }
 
   const alreadyBlocked = await prisma.blockedChatParticipant.findFirst({
@@ -321,12 +321,13 @@ const blockChatParticipant = async (
 
 const unBlockChatParticipant = async (
   authId: string,
-  blockedParticipantId: string
+  payload: TBlockParticipantZod
 ) => {
   const blockedChatParticipant =
-    await prisma.blockedChatParticipant.findUniqueOrThrow({
+    await prisma.blockedChatParticipant.findFirstOrThrow({
       where: {
-        id: blockedParticipantId,
+        authId: payload.authId,
+        chatId: payload.chatId,
       },
     });
 
@@ -345,12 +346,17 @@ const unBlockChatParticipant = async (
     },
   });
 
-  if (myParticipant?.role !== ChatRole.ADMIN)
-    throw new ApiError(403, "You are not an admin of this chat!");
+  if (
+    myParticipant?.chat.type === ChatType.GROUP ||
+    myParticipant?.chat.type === ChatType.CLASS
+  ) {
+    if (myParticipant?.role !== ChatRole.ADMIN)
+      throw new ApiError(403, "Only admin can unblock a participant!");
+  }
 
   const result = await prisma.blockedChatParticipant.delete({
     where: {
-      id: blockedParticipantId,
+      id: blockedChatParticipant.id,
     },
   });
 

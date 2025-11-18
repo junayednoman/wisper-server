@@ -303,7 +303,8 @@ model Message {
   sender       Auth          @relation(fields: [senderId], references: [id])
   text         String
   file         String?
-  fileType     FileType?     @default(IMAGE)
+  fileType     FileType?
+  isEdited     Boolean       @default(false)
   createdAt    DateTime      @default(now())
   messagesSeen MessageSeen[]
 

@@ -53,8 +53,9 @@ router.patch(
 );
 
 router.patch(
-  "/unblock-participant/:blockedParticipantId",
+  "/unblock-participant",
   authorize(UserRole.PERSON, UserRole.BUSINESS),
+  handleZodValidation(blockParticipantZod),
   chatController.unBlockChatParticipant
 );
 

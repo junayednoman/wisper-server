@@ -16,6 +16,7 @@ import { chatRoutes } from "../modules/chat/chat.routes";
 import { recommendationRoutes } from "../modules/recommendation/recommendation.routes";
 import { groupRoutes } from "../modules/group/group.routes";
 import { classRoutes } from "../modules/class/class.routes";
+import { messageRoutes } from "../modules/message/message.routes";
 
 const router = Router();
 
@@ -31,10 +32,11 @@ const routes = [
   { path: "/jobs", route: jobRoutes },
   { path: "/favorites", route: favoriteRoutes },
   { path: "/connections", route: connectionRoutes },
-  { path: "/chats", route: chatRoutes },
   { path: "/recommendations", route: recommendationRoutes },
   { path: "/groups", route: groupRoutes },
   { path: "/classes", route: classRoutes },
+  { path: "/chats", route: chatRoutes },
+  { path: "/messages", route: messageRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },

@@ -61,7 +61,7 @@ const unBlockChatParticipant = handleAsyncRequest(
   async (req: TRequest, res) => {
     const result = await chatService.unBlockChatParticipant(
       req.user!.id,
-      req.params.blockedParticipantId as string
+      req.body
     );
     sendResponse(res, {
       message: "Chat participant unblocked successfully!",
