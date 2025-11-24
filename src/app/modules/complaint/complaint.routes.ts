@@ -1,23 +1,23 @@
 import { Router } from "express";
 import authorize from "../../middlewares/authorize";
+import { complaintController } from "./complaint.controller";
 import { UserRole } from "@prisma/client";
-import { callController } from "./call.controller";
 import handleZodValidation from "../../middlewares/handleZodValidation";
-import { callZod } from "./call.validation";
+import { complaintZod } from "./complaint.validation";
 
 const router = Router();
 
 router.post(
   "/",
   authorize(UserRole.PERSON, UserRole.BUSINESS),
-  handleZodValidation(callZod),
-  callController.createCall
+  handleZodValidation(complaintZod),
+  complaintController.createComplaint
 );
 
 router.get(
-  "/my",
+  "/",
   authorize(UserRole.PERSON, UserRole.BUSINESS),
-  callController.getMyCalls
+  complaintController.getAllComplaints
 );
 
-export const callRoutes = router;
+export const complaintRoutes = router;

@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const callSchema = z.object({
+export const callZod = z.object({
   type: z.enum(["VIDEO", "AUDIO"]),
   mode: z.enum(["ONE_TO_ONE", "GROUP"]),
   roomId: z.string(),
@@ -13,5 +13,5 @@ export const callSchema = z.object({
   ),
 });
 
-export type TCall = z.infer<typeof callSchema>;
-export type TCallParticipant = z.infer<typeof callSchema>["participants"][0];
+export type TCall = z.infer<typeof callZod>;
+export type TCallParticipant = z.infer<typeof callZod>["participants"][0];

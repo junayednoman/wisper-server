@@ -37,7 +37,7 @@ model Auth {
   givenRecommendations    Recommendation[]         @relation("RecommendationGiver")
   receivedRecommendations Recommendation[]         @relation("RecommendationReceiver")
   complainedComplaints    Complaint[]              @relation("Complainant")
-  receivedComplaints      Complaint[]              @relation("ReceivedAccount")
+  receivedComplaints      Complaint[]              @relation("ReceivedComplaintAccount")
   requestedConnections    Connection[]             @relation("Requester")
   receivedConnections     Connection[]             @relation("Receiver")
   wallet                  Wallet?
@@ -382,12 +382,11 @@ model Complaint {
   postId        String?
   post          Post?           @relation(fields: [postId], references: [id])
   accountId     String?
-  account       Auth?           @relation(name: "ReceivedAccount", fields: [accountId], references: [id])
+  account       Auth?           @relation(name: "ReceivedComplaintAccount", fields: [accountId], references: [id])
   type          ComplaintType
   reason        String
   status        ComplaintStatus @default(PENDING)
   date          DateTime        @default(now())
-  authId        String?
 
   @@map("complaints")
 }
