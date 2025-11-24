@@ -40,14 +40,12 @@ model Auth {
   receivedComplaints      Complaint[]              @relation("ReceivedAccount")
   requestedConnections    Connection[]             @relation("Requester")
   receivedConnections     Connection[]             @relation("Receiver")
-  initiatedCalls          Call[]                   @relation("Initiator")
-  receivedCalls           Call[]                   @relation("Receiver")
-  participatedCalls       CallParticipant[]
   wallet                  Wallet?
   admin                   Admin?
   reactions               Reaction[]
   favoriteJobs            FavoriteJob[]
   recommendations         Recommendation[]
+  callParticipants        CallParticipant[]
 
   @@map("auths")
 }
@@ -431,29 +429,24 @@ model Connection {
 
 model Call {
   id           String            @id @default(uuid())
+  roomId       String
   type         CallType
   mode         CallMode
-  initiatorId  String
-  initiator    Auth              @relation(name: "Initiator", fields: [initiatorId], references: [id])
-  receiverId   String
-  receiver     Auth              @relation(name: "Receiver", fields: [receiverId], references: [id])
-  roomId       String
-  status       CallStatus
-  startedAt    DateTime          @default(now())
-  endedAt      DateTime?
   duration     Int
   participants CallParticipant[]
+  date         DateTime          @default(now())
 
   @@map("calls")
 }
 
 model CallParticipant {
-  id            String   @id @default(uuid())
-  callId        String
-  call          Call     @relation(fields: [callId], references: [id])
-  participantId String
-  participant   Auth     @relation(fields: [participantId], references: [id])
-  date          DateTime @default(now())
+  id     String     @id @default(uuid())
+  callId String
+  call   Call       @relation(fields: [callId], references: [id])
+  authId String
+  auth   Auth       @relation(fields: [authId], references: [id])
+  role   CallRole
+  status CallStatus
 
   @@map("call_participants")
 }
@@ -514,10 +507,14 @@ enum TransactionType {
 }
 
 enum CallStatus {
-  ONGOING
-  ENDED
   MISSED
-  CANCELLED
+  OUTGOING
+  INCOMING
+}
+
+enum CallRole {
+  CALLER
+  RECEIVER
 }
 
 enum CallMode {
