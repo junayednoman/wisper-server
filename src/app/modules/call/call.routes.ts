@@ -11,4 +11,10 @@ router.post(
   callController.createCall
 );
 
+router.get(
+  "/my",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  callController.getMyCalls
+);
+
 export const callRoutes = router;

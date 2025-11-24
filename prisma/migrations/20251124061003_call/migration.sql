@@ -12,7 +12,7 @@
 
 */
 -- CreateEnum
-CREATE TYPE "public"."CallRole" AS ENUM ('CALLER', 'RECEIVER');
+CREATE TYPE "public"."CallParticipantRole" AS ENUM ('CALLER', 'RECEIVER');
 
 -- AlterEnum
 BEGIN;
@@ -42,7 +42,7 @@ DROP COLUMN "receiverId",
 DROP COLUMN "startedAt",
 ADD COLUMN     "authId" TEXT NOT NULL,
 ADD COLUMN     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "role" "public"."CallRole" NOT NULL;
+ADD COLUMN     "role" "public"."CallParticipantRole" NOT NULL;
 
 -- DropTable
 DROP TABLE "public"."call_participants";

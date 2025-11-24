@@ -19,7 +19,7 @@ CREATE TABLE "public"."call_participants" (
     "id" TEXT NOT NULL,
     "callId" TEXT NOT NULL,
     "authId" TEXT NOT NULL,
-    "role" "public"."CallRole" NOT NULL,
+    "role" "public"."CallParticipantRole" NOT NULL,
     "status" "public"."CallStatus" NOT NULL,
 
     CONSTRAINT "call_participants_pkey" PRIMARY KEY ("id")

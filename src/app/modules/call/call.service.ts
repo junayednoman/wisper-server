@@ -1,7 +1,11 @@
-import { CallParticipant, CallRole, CallStatus } from "@prisma/client";
+import { CallParticipant, CallRole, CallStatus, Prisma } from "@prisma/client";
 import { TCall, TCallParticipant } from "./call.validation";
 import prisma from "../../utils/prisma";
 import ApiError from "../../middlewares/classes/ApiError";
+import {
+  calculatePagination,
+  TPaginationOptions,
+} from "../../utils/paginationCalculation";
 
 const createCall = async (userId: string, payload: TCall) => {
   for (const participant of payload.participants) {
@@ -43,4 +47,88 @@ const createCall = async (userId: string, payload: TCall) => {
   return result;
 };
 
-export const callService = { createCall };
+const getMyCalls = async (
+  userId: string,
+  options: TPaginationOptions,
+  query: Record<string, unknown>
+) => {
+  const { status } = query;
+  const andConditions: Prisma.CallWhereInput[] = [];
+
+  if (status) {
+    andConditions.push({
+      participants: {
+        some: {
+          status: status,
+        },
+      },
+    });
+  }
+
+  andConditions.push({
+    participants: {
+      some: {
+        authId: userId,
+      },
+    },
+  });
+
+  const whereConditions: Prisma.CallWhereInput =
+    andConditions.length > 0
+      ? {
+          AND: andConditions,
+        }
+      : {};
+
+  const { page, take, skip } = calculatePagination(options);
+  const calls = await prisma.call.findMany({
+    where: whereConditions,
+    select: {
+      id: true,
+      type: true,
+      duration: true,
+      date: true,
+      participants: {
+        where: {
+          OR: [{ role: CallRole.CALLER }, { authId: userId }],
+        },
+        select: {
+          status: true,
+          auth: {
+            select: {
+              id: true,
+              person: {
+                select: {
+                  name: true,
+                  image: true,
+                },
+              },
+              business: {
+                select: {
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    skip,
+    take,
+    orderBy: { date: "desc" },
+  });
+
+  const total = await prisma.call.count({
+    where: whereConditions,
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+  return { meta, calls };
+};
+
+export const callService = { createCall, getMyCalls };
