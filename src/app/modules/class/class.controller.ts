@@ -16,7 +16,15 @@ const createClass = handleAsyncRequest(async (req: TRequest, res) => {
 const getSingleClass = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await classServices.getSingleClass(req.params.id as string);
   sendResponse(res, {
-    message: "Classs retrieved successfully!",
+    message: "Classes retrieved successfully!",
+    data: result,
+  });
+});
+
+const getClassMembers = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await classServices.getClassMembers(req.params.id as string);
+  sendResponse(res, {
+    message: "Class members retrieved successfully!",
     data: result,
   });
 });
@@ -85,4 +93,5 @@ export const classController = {
   updateClassData,
   toggleClassVisibility,
   toggleClassInvitationAccess,
+  getClassMembers,
 };

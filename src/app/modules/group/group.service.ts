@@ -76,6 +76,39 @@ const getSingleGroup = async (id: string) => {
   return result;
 };
 
+const getGroupMembers = async (groupId: string) => {
+  const members = await prisma.chatParticipant.findMany({
+    where: {
+      chat: {
+        groupId: groupId,
+      },
+    },
+    select: {
+      id: true,
+      role: true,
+      auth: {
+        select: {
+          id: true,
+          person: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+          business: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return members;
+};
+
 const addGroupMember = async (
   groupId: string,
   memberId: string,
@@ -200,4 +233,5 @@ export const groupServices = {
   updateGroupData,
   toggleGroupVisibility,
   toggleGroupInvitationAccess,
+  getGroupMembers,
 };

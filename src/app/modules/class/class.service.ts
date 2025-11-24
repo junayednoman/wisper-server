@@ -102,6 +102,39 @@ const getSingleClass = async (id: string) => {
   return result;
 };
 
+const getClassMembers = async (classId: string) => {
+  const members = await prisma.chatParticipant.findMany({
+    where: {
+      chat: {
+        classId,
+      },
+    },
+    select: {
+      id: true,
+      role: true,
+      auth: {
+        select: {
+          id: true,
+          person: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+          business: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return members;
+};
+
 const addClassMember = async (
   classId: string,
   memberId: string,
@@ -228,4 +261,5 @@ export const classServices = {
   updateClassData,
   toggleClassVisibility,
   toggleClassInvitationAccess,
+  getClassMembers,
 };

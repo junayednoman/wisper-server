@@ -25,6 +25,12 @@ router.get(
   classController.getSingleClass
 );
 
+router.get(
+  "/members/:id",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  classController.getClassMembers
+);
+
 router.post(
   "/:id",
   authorize(UserRole.PERSON, UserRole.BUSINESS),

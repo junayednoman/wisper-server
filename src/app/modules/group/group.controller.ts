@@ -21,6 +21,14 @@ const getSingleGroup = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const getGroupMembers = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await groupServices.getGroupMembers(req.params.id as string);
+  sendResponse(res, {
+    message: "Group members retrieved successfully!",
+    data: result,
+  });
+});
+
 const addGroupMember = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await groupServices.addGroupMember(
     req.params.id as string,
@@ -85,4 +93,5 @@ export const groupController = {
   updateGroupData,
   toggleGroupVisibility,
   toggleGroupInvitationAccess,
+  getGroupMembers,
 };

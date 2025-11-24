@@ -25,6 +25,12 @@ router.get(
   groupController.getSingleGroup
 );
 
+router.get(
+  "/members/:id",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  groupController.getGroupMembers
+);
+
 router.post(
   "/:id",
   authorize(UserRole.PERSON, UserRole.BUSINESS),
