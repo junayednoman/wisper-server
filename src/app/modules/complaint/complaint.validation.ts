@@ -7,6 +7,10 @@ export const complaintZod = z.object({
   reason: z.string(),
 });
 
+export const changeComplaintStatusZod = z.object({
+  status: z.enum(["PENDING", "RESOLVED"]),
+});
+
 export type TComplaint = z.infer<typeof complaintZod> & {
   complainantId: string;
 };

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { ComplaintStatus, Prisma } from "@prisma/client";
 import {
   calculatePagination,
   TPaginationOptions,
@@ -79,6 +79,7 @@ const getAllComplaints = async (
       type: true,
       status: true,
       date: true,
+      reason: true,
       account: {
         select: {
           id: true,
@@ -87,6 +88,7 @@ const getAllComplaints = async (
             select: {
               id: true,
               name: true,
+              email: true,
               image: true,
             },
           },
@@ -94,6 +96,7 @@ const getAllComplaints = async (
             select: {
               id: true,
               name: true,
+              email: true,
               image: true,
             },
           },
@@ -126,4 +129,21 @@ const getAllComplaints = async (
   return { meta, complaints };
 };
 
-export const complaintService = { createComplaint, getAllComplaints };
+const changeComplaintStatus = async (id: string, status: ComplaintStatus) => {
+  const result = await prisma.complaint.update({
+    where: {
+      id,
+    },
+    data: {
+      status,
+    },
+  });
+
+  return result;
+};
+
+export const complaintService = {
+  createComplaint,
+  getAllComplaints,
+  changeComplaintStatus,
+};

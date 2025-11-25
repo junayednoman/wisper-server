@@ -22,4 +22,19 @@ const getAllComplaints = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-export const complaintController = { createComplaint, getAllComplaints };
+const changeComplaintStatus = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await complaintService.changeComplaintStatus(
+    req.params.id as string,
+    req.body.status
+  );
+  sendResponse(res, {
+    message: "Complaints updated successfully!",
+    data: result,
+  });
+});
+
+export const complaintController = {
+  createComplaint,
+  getAllComplaints,
+  changeComplaintStatus,
+};
