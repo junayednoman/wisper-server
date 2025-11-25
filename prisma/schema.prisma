@@ -488,7 +488,7 @@ model Legal {
   privacyPolicy      String
   termsAndConditions String
   aboutUs            String
-  updatedAt          DateTime
+  updatedAt          DateTime @default(now()) @updatedAt
 
   @@map("legals")
 }

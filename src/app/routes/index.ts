@@ -20,6 +20,7 @@ import { messageRoutes } from "../modules/message/message.routes";
 import { callRoutes } from "../modules/call/call.routes";
 import { complaintRoutes } from "../modules/complaint/complaint.routes";
 import { boostPackageRoutes } from "../modules/boostPackage/boostPackage.routes";
+import { legalRoutes } from "../modules/legal/legal.routes";
 
 const router = Router();
 
@@ -43,6 +44,7 @@ const routes = [
   { path: "/calls", route: callRoutes },
   { path: "/complaints", route: complaintRoutes },
   { path: "/boost-packages", route: boostPackageRoutes },
+  { path: "/legal", route: legalRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },
