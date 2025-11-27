@@ -31,5 +31,9 @@ exports.default = {
         bucket: process.env.AWS_BUCKET_NAME,
         endpoint: process.env.SPACES_API,
     },
+    payment: {
+        secret_key: process.env.STRIPE_SECRET_KEY,
+        callback_endpoint: process.env.PAYMENT_CALLBACK_ENDPOINT,
+    },
 };
 //# sourceMappingURL=index.js.map

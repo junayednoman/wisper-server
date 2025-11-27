@@ -46,6 +46,7 @@ model Auth {
   favoriteJobs            FavoriteJob[]
   recommendations         Recommendation[]
   callParticipants        CallParticipant[]
+  payments                Payment[]
 
   @@map("auths")
 }
@@ -123,6 +124,7 @@ model Post {
   complaints    Complaint[]
   status        PostStatus    @default(ACTIVE)
   reactions     Reaction[]
+  boosts        Boost[]
 
   @@map("posts")
 }
@@ -397,19 +399,22 @@ model BoostPackage {
   price    Int
   duration String
   status   BoostPackageStatus
+  boosts   Boost[]
 
   @@map("boost_packages")
 }
 
 model Boost {
-  id             String      @id @default(uuid())
+  id             String       @id @default(uuid())
   postId         String
+  post           Post         @relation(fields: [postId], references: [id])
   packageId      String
+  package        BoostPackage @relation(fields: [packageId], references: [id])
   targetIndustry String
-  impressions    Int
-  clicks         Int
-  status         BoostStatus
-  createdAt      DateTime    @default(now())
+  impressions    Int?          @default(0)
+  clicks         Int?          @default(0)
+  status         BoostStatus  @default(ACTIVE)
+  createdAt      DateTime     @default(now())
 
   @@map("boosts")
 }
@@ -491,6 +496,17 @@ model Legal {
   updatedAt          DateTime @default(now()) @updatedAt
 
   @@map("legals")
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  authId        String
+  auth          Auth     @relation(fields: [authId], references: [id])
+  amount        Float
+  transactionId String   @unique
+  date          DateTime @default(now())
+
+  @@map("payments")
 }
 
 enum PostStatus {

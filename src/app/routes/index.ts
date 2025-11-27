@@ -22,6 +22,7 @@ import { complaintRoutes } from "../modules/complaint/complaint.routes";
 import { boostPackageRoutes } from "../modules/boostPackage/boostPackage.routes";
 import { legalRoutes } from "../modules/legal/legal.routes";
 import { dashboardRoutes } from "../modules/dashboard/dashboard.routes";
+import { boostRoutes } from "../modules/boost/boost.routes";
 
 const router = Router();
 
@@ -47,6 +48,7 @@ const routes = [
   { path: "/boost-packages", route: boostPackageRoutes },
   { path: "/legal", route: legalRoutes },
   { path: "/dashboard", route: dashboardRoutes },
+  { path: "/boosts", route: boostRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },

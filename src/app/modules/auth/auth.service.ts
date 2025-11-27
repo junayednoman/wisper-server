@@ -25,6 +25,9 @@ const login = async (payload: TLoginInput) => {
         {
           status: UserStatus.DELETED,
         },
+        {
+          status: UserStatus.PENDING,
+        },
       ],
     },
   });

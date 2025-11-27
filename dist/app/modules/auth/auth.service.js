@@ -11,8 +11,8 @@ const sendEmail_1 = require("../../utils/sendEmail");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../../config"));
-const generateOTP_1 = __importDefault(require("../../utils/generateOTP"));
 const jsonwebtoken_2 = __importDefault(require("jsonwebtoken"));
+const paginationCalculation_1 = require("../../utils/paginationCalculation");
 const login = async (payload) => {
     const auth = await prisma_1.default.auth.findUniqueOrThrow({
         where: {
@@ -63,113 +63,62 @@ const login = async (payload) => {
         refreshToken,
     };
 };
-const verifyOtp = async (payload) => {
-    await prisma_1.default.auth.findUniqueOrThrow({
-        where: {
-            email: payload.email,
-        },
-    });
-    const otp = await prisma_1.default.otp.findUniqueOrThrow({
-        where: {
-            email: payload.email,
-            isVerified: false,
-        },
-    });
-    const hasOtpExpired = otp.expires < new Date();
-    if (otp.attempts > 3)
-        throw new ApiError_1.default(400, "Too many attempts! Please request a new one!");
-    if (hasOtpExpired) {
-        throw new ApiError_1.default(400, "OTP expired! Please request a new one!");
-    }
-    // Update the OTP attempts
-    await prisma_1.default.otp.update({
-        where: {
-            email: payload.email,
-        },
-        data: {
-            attempts: {
-                increment: 1,
+const getAll = async (options) => {
+    const andConditions = [];
+    andConditions.push({
+        OR: [
+            {
+                role: client_1.UserRole.PERSON,
             },
-        },
+            {
+                role: client_1.UserRole.BUSINESS,
+            },
+        ],
     });
-    const hasMatched = await bcrypt_1.default.compare(payload.otp, otp.otp);
-    if (!hasMatched) {
-        throw new ApiError_1.default(400, "Invalid OTP! Please try again!");
-    }
-    const result = await prisma_1.default.$transaction(async (tn) => {
-        if (payload.verifyAccount) {
-            const updatedAuth = await tn.auth.update({
-                where: {
-                    email: payload.email,
-                },
-                data: {
-                    status: client_1.UserStatus.ACTIVE,
-                },
-                include: {
-                    person: true,
-                },
-            });
-            await prisma_1.default.otp.delete({
-                where: {
-                    email: payload.email,
-                },
-            });
-            // send verification success email
-            if (updatedAuth) {
-                const subject = "🎉 Welcome to wisper! Your Email is Verified";
-                const name = updatedAuth.person?.name;
-                const path = "./src/app/emailTemplates/verificationSuccess.html";
-                (0, sendEmail_1.sendEmail)(updatedAuth.email, subject, path, { name });
-            }
-        }
-        else {
-            await tn.otp.update({
-                where: {
-                    email: payload.email,
-                },
-                data: {
-                    isVerified: true,
-                },
-            });
-        }
-    });
-    return result;
-};
-const sendOtp = async (email) => {
-    const auth = await prisma_1.default.auth.findUniqueOrThrow({
-        where: {
-            email: email,
-            status: client_1.UserStatus.ACTIVE,
-        },
+    const whereConditions = andConditions.length > 0 ? { AND: andConditions } : {};
+    const { page, take, skip, sortBy, orderBy } = (0, paginationCalculation_1.calculatePagination)(options);
+    const personAuths = await prisma_1.default.auth.findMany({
+        where: whereConditions,
         select: {
+            id: true,
+            createdAt: true,
             person: {
                 select: {
+                    id: true,
                     name: true,
+                    email: true,
+                    image: true,
+                    phone: true,
+                    title: true,
+                    industry: true,
+                    address: true,
+                },
+            },
+            business: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                    phone: true,
+                    industry: true,
+                    address: true,
                 },
             },
         },
+        skip,
+        take,
+        orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
     });
-    const otp = (0, generateOTP_1.default)();
-    const hashedOtp = await bcrypt_1.default.hash(otp, 10);
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
-    const otpData = {
-        email: email,
-        otp: hashedOtp,
-        expires: otpExpires,
-        attempts: 0,
-        isVerified: false,
+    const total = await prisma_1.default.auth.count({
+        where: whereConditions,
+    });
+    const meta = {
+        page,
+        limit: take,
+        total,
     };
-    await prisma_1.default.otp.upsert({
-        where: {
-            email,
-        },
-        update: otpData,
-        create: otpData,
-    });
-    // send email
-    const subject = "Your One-Time Password (OTP) for Password Reset";
-    const path = "./src/app/emailTemplates/otp.html";
-    (0, sendEmail_1.sendEmail)(email, subject, path, { otp, name: auth.person?.name });
+    return { meta, personAuths };
 };
 const resetPassword = async (payload) => {
     const auth = await prisma_1.default.auth.findUniqueOrThrow({
@@ -237,6 +186,13 @@ const changePassword = async (payload, userId) => {
     });
 };
 const changeAccountStatus = async (userId, status) => {
+    const auth = await prisma_1.default.auth.findUniqueOrThrow({
+        where: {
+            id: userId,
+        },
+    });
+    if (auth.role === client_1.UserRole.ADMIN)
+        throw new ApiError_1.default(400, "Admin account cannot be changed!");
     await prisma_1.default.auth.update({
         where: {
             id: userId,
@@ -280,13 +236,33 @@ const refreshToken = async (token) => {
     });
     return { accessToken };
 };
+const toggleNotificationPermission = async (id) => {
+    const auth = await prisma_1.default.auth.findUniqueOrThrow({
+        where: {
+            id,
+        },
+    });
+    const result = await prisma_1.default.auth.update({
+        where: {
+            id,
+        },
+        data: {
+            allowNotifications: !auth.allowNotifications,
+        },
+        select: {
+            id: true,
+            allowNotifications: true,
+        },
+    });
+    return result;
+};
 exports.authServices = {
-    verifyOtp,
     login,
-    sendOtp,
+    getAll,
     refreshToken,
     resetPassword,
     changePassword,
     changeAccountStatus,
+    toggleNotificationPermission,
 };
 //# sourceMappingURL=auth.service.js.map

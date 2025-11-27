@@ -14,7 +14,11 @@ router.post(
   boostPackageController.createBoostPackage
 );
 
-router.get("/", authorize(UserRole.ADMIN), boostPackageController.getPackages);
+router.get(
+  "/",
+  authorize(UserRole.ADMIN, UserRole.PERSON, UserRole.BUSINESS),
+  boostPackageController.getPackages
+);
 
 router.get(
   "/:id",

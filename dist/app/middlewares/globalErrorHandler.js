@@ -16,7 +16,34 @@ const globalErrorHandler = (err, req, res, _next) => {
     if (err instanceof client_1.Prisma.PrismaClientValidationError) {
         status = 422;
         message = "Validation error!";
-        error = err.message;
+        const missingMatch = err.message.match(/Argument `(\w+)` is missing/);
+        const unknownMatch = err.message.match(/Unknown argument `(\w+)`/);
+        const invalidMatch = err.message.match(/Argument `(\w+)`: Invalid value provided/);
+        const invalidEnumMatch = err.message.match(/Invalid value for argument `(\w+)`/);
+        if (missingMatch) {
+            const field = missingMatch[1];
+            message = `Field '${field}' is required!`;
+            error = { message, path: field, code: "missing_field" };
+        }
+        else if (unknownMatch) {
+            const field = unknownMatch[1];
+            message = `Field '${field}' does not exist on this model!`;
+            error = { message, path: field, code: "unknown_field" };
+        }
+        else if (invalidMatch) {
+            const field = invalidMatch[1];
+            message = `Field '${field}' has an invalid value or type!`;
+            error = { message, path: field, code: "invalid_value" };
+        }
+        else if (invalidEnumMatch) {
+            const field = invalidEnumMatch[1];
+            message = `Field '${field}' has an invalid enum value!`;
+            error = { message, path: field, code: "invalid_enum_value" };
+        }
+        else {
+            message = err.message.split("\n")[0] || message;
+            error = err.message;
+        }
     }
     else if (err instanceof library_1.PrismaClientKnownRequestError ||
         err.name === "PrismaClientKnownRequestError") {
@@ -58,6 +85,13 @@ const globalErrorHandler = (err, req, res, _next) => {
         status = 422;
         message = err.issues[0]?.message || "Validation error!";
         error = err.issues;
+        if (error[0].code === "invalid_type") {
+            message = `${error[0].path[0]} must be a ${error[0].expected}!`;
+        }
+        else if (error[0].code === "invalid_value") {
+            const secondPartMessage = `Invalid ${error[0].path[0]}! Expected one of ${error[0].values.join(" | ")}`;
+            message = secondPartMessage;
+        }
     }
     else if (err instanceof ApiError_1.default) {
         status = err.statusCode;

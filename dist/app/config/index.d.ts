@@ -23,6 +23,10 @@ declare const _default: {
         bucket: string | undefined;
         endpoint: string | undefined;
     };
+    payment: {
+        secret_key: string | undefined;
+        callback_endpoint: string | undefined;
+    };
 };
 export default _default;
 //# sourceMappingURL=index.d.ts.map

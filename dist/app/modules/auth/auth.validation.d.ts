@@ -1,10 +1,4 @@
 import z from "zod";
-export declare const verifyOtpZod: z.ZodObject<{
-    email: z.ZodString;
-    otp: z.ZodString;
-    verifyAccount: z.ZodOptional<z.ZodBoolean>;
-}, z.core.$strip>;
-export type TVerifyOtpInput = z.infer<typeof verifyOtpZod>;
 export declare const loginZodSchema: z.ZodObject<{
     email: z.ZodString;
     password: z.ZodString;

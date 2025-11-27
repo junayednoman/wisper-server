@@ -18,7 +18,7 @@ const create = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-const getFeedPosts = handleAsyncRequest(async (req: TRequest, res) => {
+const getFeedPosts = handleAsyncRequest(async (_req: TRequest, res) => {
   const result = await PostService.getFeedPosts();
   sendResponse(res, {
     message: "Posts retrieved successfully!",

@@ -6,13 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.phoneZod = exports.emailZod = exports.passwordZod = void 0;
 const zod_1 = __importDefault(require("zod"));
 exports.passwordZod = zod_1.default
-    .string()
+    .string({ message: "Password is required" })
     .min(7, "Password must be at least 7 characters long")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 exports.emailZod = zod_1.default
-    .string()
+    .string({ message: "Email is required" })
     .email("Invalid email address")
     .trim()
     .toLowerCase()

@@ -11,7 +11,7 @@ const createOrUpdateLegal = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-const getLegalInfo = handleAsyncRequest(async (req: TRequest, res) => {
+const getLegalInfo = handleAsyncRequest(async (_req: TRequest, res) => {
   const result = await legalService.getLegalInfo();
   sendResponse(res, {
     message: "Legal info retrieved successfully!",

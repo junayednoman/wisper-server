@@ -3,18 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changeAccountStatusZod = exports.changePasswordZod = exports.resetPasswordZod = exports.loginZodSchema = exports.verifyOtpZod = void 0;
+exports.changeAccountStatusZod = exports.changePasswordZod = exports.resetPasswordZod = exports.loginZodSchema = void 0;
 const zod_1 = __importDefault(require("zod"));
 const global_validation_1 = require("../../validation/global.validation");
 const client_1 = require("@prisma/client");
-exports.verifyOtpZod = zod_1.default.object({
-    email: global_validation_1.emailZod,
-    otp: zod_1.default
-        .string()
-        .min(6, "OTP must be at least 6 characters long")
-        .max(6, "OTP must be at most 6 characters long"),
-    verifyAccount: zod_1.default.boolean().optional(),
-});
 exports.loginZodSchema = zod_1.default.object({
     email: global_validation_1.emailZod,
     password: global_validation_1.passwordZod,

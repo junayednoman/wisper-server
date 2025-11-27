@@ -98,7 +98,6 @@ const sendOtp = async (email: string) => {
   const auth = await prisma.auth.findUniqueOrThrow({
     where: {
       email: email,
-      status: UserStatus.ACTIVE,
     },
     select: {
       person: {
@@ -130,7 +129,7 @@ const sendOtp = async (email: string) => {
   });
 
   // send email
-  const subject = "Your One-Time Password (OTP) for Password Reset";
+  const subject = "Your One-Time Password (OTP)";
   const path = "./src/app/emailTemplates/otp.html";
   sendEmail(email, subject, path, { otp, name: auth.person?.name as string });
 };

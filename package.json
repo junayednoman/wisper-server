@@ -9,7 +9,7 @@
     "format:check": "prettier --check \"src/**/*.ts\"",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/app/server.js",
+    "start": "node dist/app/server.js -p 5001",
     "seed:admin": "ts-node-dev --respawn --transpile-only src/seedAdmin.ts"
   },
   "keywords": [],
@@ -49,6 +49,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
+    "stripe": "^20.0.0",
     "zod": "^4.1.12"
   }
 }

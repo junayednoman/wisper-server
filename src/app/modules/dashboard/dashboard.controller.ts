@@ -3,7 +3,7 @@ import handleAsyncRequest from "../../utils/handleAsyncRequest";
 import { sendResponse } from "../../utils/sendResponse";
 import { dashboardServices } from "./dashboard.service";
 
-const getDashboardStats = handleAsyncRequest(async (req: TRequest, res) => {
+const getDashboardStats = handleAsyncRequest(async (_req: TRequest, res) => {
   const result = await dashboardServices.getDashboardStats();
   sendResponse(res, {
     message: "Dashboard stats retrieved successfully!",

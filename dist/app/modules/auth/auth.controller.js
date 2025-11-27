@@ -8,6 +8,7 @@ const handleAsyncRequest_1 = __importDefault(require("../../utils/handleAsyncReq
 const sendResponse_1 = require("../../utils/sendResponse");
 const auth_service_1 = require("./auth.service");
 const config_1 = __importDefault(require("../../config"));
+const pick_1 = __importDefault(require("../../utils/pick"));
 const login = (0, handleAsyncRequest_1.default)(async (req, res) => {
     const result = await auth_service_1.authServices.login(req.body);
     // set up cookie
@@ -26,17 +27,11 @@ const login = (0, handleAsyncRequest_1.default)(async (req, res) => {
         data: { accessToken },
     });
 });
-const verifyOtp = (0, handleAsyncRequest_1.default)(async (req, res) => {
-    const result = await auth_service_1.authServices.verifyOtp(req.body);
+const getAll = (0, handleAsyncRequest_1.default)(async (req, res) => {
+    const options = (0, pick_1.default)(req.query, ["page", "limit", "sortBy", "orderBy"]);
+    const result = await auth_service_1.authServices.getAll(options);
     (0, sendResponse_1.sendResponse)(res, {
-        message: "OTP verified successfully!",
-        data: result,
-    });
-});
-const sendOtp = (0, handleAsyncRequest_1.default)(async (req, res) => {
-    const result = await auth_service_1.authServices.sendOtp(req.body.email);
-    (0, sendResponse_1.sendResponse)(res, {
-        message: "OTP sent successfully!",
+        message: "Users retrieved successfully!",
         data: result,
     });
 });
@@ -69,13 +64,20 @@ const refreshToken = (0, handleAsyncRequest_1.default)(async (req, res) => {
         data: result,
     });
 });
+const toggleNotificationPermission = (0, handleAsyncRequest_1.default)(async (req, res) => {
+    const result = await auth_service_1.authServices.toggleNotificationPermission(req.user.id);
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "Notification permission updated successfully!",
+        data: result,
+    });
+});
 exports.authController = {
-    verifyOtp,
     login,
-    sendOtp,
+    getAll,
     resetPassword,
     changePassword,
     changeAccountStatus,
     refreshToken,
+    toggleNotificationPermission,
 };
 //# sourceMappingURL=auth.controller.js.map
