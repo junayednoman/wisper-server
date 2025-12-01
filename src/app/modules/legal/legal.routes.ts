@@ -14,10 +14,6 @@ router.patch(
   legalController.createOrUpdateLegal
 );
 
-router.get(
-  "/",
-  authorize(UserRole.ADMIN, UserRole.PERSON, UserRole.BUSINESS),
-  legalController.getLegalInfo
-);
+router.get("/", legalController.getLegalInfo);
 
 export const legalRoutes = router;

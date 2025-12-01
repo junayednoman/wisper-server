@@ -22,6 +22,14 @@ const getAllJobs = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const getSingleJob = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await jobServices.getSingleJob(req.params.id as string);
+  sendResponse(res, {
+    message: "Job retrieved successfully!",
+    data: result,
+  });
+});
+
 const updateJob = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await jobServices.updateJob(
     req.params.id as string,
@@ -45,4 +53,10 @@ const deleteJob = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-export const jobController = { createJob, getAllJobs, updateJob, deleteJob };
+export const jobController = {
+  createJob,
+  getAllJobs,
+  getSingleJob,
+  updateJob,
+  deleteJob,
+};

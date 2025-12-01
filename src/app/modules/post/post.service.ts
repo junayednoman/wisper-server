@@ -1,4 +1,9 @@
-import { CommentAccess, PostStatus, Prisma } from "@prisma/client";
+import {
+  CommentAccess,
+  ConnectionStatus,
+  PostStatus,
+  Prisma,
+} from "@prisma/client";
 import { TFile } from "../../interface/file.interface";
 import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
 import {
@@ -28,8 +33,140 @@ const create = async (id: string, payload: TCreatePost, files?: TFile[]) => {
   return result;
 };
 
-const getFeedPosts = async () => {
-  return await prisma.post.findMany();
+const getFeedPosts = async (userId: string, options: TPaginationOptions) => {
+  const andConditions: Prisma.PostWhereInput[] = [];
+  const currentAuth = await prisma.auth.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      person: {
+        select: {
+          industry: true,
+        },
+      },
+      business: {
+        select: {
+          industry: true,
+        },
+      },
+    },
+  });
+
+  const connections = await prisma.connection.findMany({
+    where: {
+      OR: [
+        {
+          requesterId: userId,
+        },
+        {
+          receiverId: userId,
+        },
+      ],
+      status: ConnectionStatus.ACCEPTED,
+    },
+    select: {
+      id: true,
+      requesterId: true,
+      receiverId: true,
+    },
+  });
+
+  const authorIds = connections.map(connection =>
+    connection.receiverId === userId
+      ? connection.requesterId
+      : connection.receiverId
+  );
+  authorIds.push(userId);
+
+  if (authorIds.length > 1) {
+    console.log("hitting");
+    andConditions.push({
+      authorId: {
+        in: authorIds,
+      },
+    });
+  } else {
+    andConditions.push({
+      author: {
+        OR: [
+          {
+            person: {
+              industry: {
+                contains:
+                  currentAuth?.business?.industry ||
+                  currentAuth?.person?.industry,
+                mode: "insensitive",
+              },
+            },
+          },
+          {
+            business: {
+              industry: {
+                contains:
+                  currentAuth?.business?.industry ||
+                  currentAuth?.person?.industry,
+                mode: "insensitive",
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+  const whereConditions: Prisma.PostWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+  const posts = await prisma.post.findMany({
+    where: whereConditions,
+    select: {
+      id: true,
+      caption: true,
+      images: true,
+      views: true,
+      createdAt: true,
+      commentAccess: true,
+      author: {
+        select: {
+          id: true,
+          person: {
+            select: {
+              id: true,
+              name: true,
+              title: true,
+              image: true,
+            },
+          },
+          business: {
+            select: {
+              id: true,
+              name: true,
+              industry: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+    skip,
+    take,
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+  });
+
+  const total = await prisma.post.count({
+    where: whereConditions,
+  });
+
+  posts.sort(() => Math.random() - 0.5);
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+  return { meta, posts };
 };
 
 const getSingle = async (id: string) => {
@@ -245,6 +382,52 @@ const changePostStatus = async (
   return { result, message };
 };
 
+const deletePost = async (id: string, userId: string) => {
+  const post = await prisma.post.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+
+  if (post.authorId !== userId) throw new ApiError(401, "Unauthorized");
+
+  const result = await prisma.$transaction(async tn => {
+    const result = await tn.post.delete({
+      where: {
+        id,
+      },
+    });
+
+    await tn.comment.deleteMany({
+      where: {
+        postId: id,
+      },
+    });
+
+    await tn.reaction.deleteMany({
+      where: {
+        postId: id,
+      },
+    });
+
+    await tn.boost.deleteMany({
+      where: {
+        postId: id,
+      },
+    });
+
+    await tn.complaint.deleteMany({
+      where: {
+        postId: id,
+      },
+    });
+
+    return result;
+  });
+
+  return result;
+};
+
 export const PostService = {
   create,
   getFeedPosts,
@@ -254,4 +437,5 @@ export const PostService = {
   removeImage,
   updateCommentAccess,
   changePostStatus,
+  deletePost,
 };

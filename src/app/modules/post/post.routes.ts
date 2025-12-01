@@ -59,4 +59,10 @@ router.patch(
   postController.changePostStatus
 );
 
+router.delete(
+  "/:id",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  postController.deletePost
+);
+
 export const postRoutes = router;

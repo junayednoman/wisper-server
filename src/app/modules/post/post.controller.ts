@@ -18,8 +18,9 @@ const create = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-const getFeedPosts = handleAsyncRequest(async (_req: TRequest, res) => {
-  const result = await PostService.getFeedPosts();
+const getFeedPosts = handleAsyncRequest(async (req: TRequest, res) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await PostService.getFeedPosts(req.user!.id, options);
   sendResponse(res, {
     message: "Posts retrieved successfully!",
     data: result,
@@ -51,6 +52,17 @@ const userPosts = handleAsyncRequest(async (req: TRequest, res) => {
   );
   sendResponse(res, {
     message: "Posts retrieved successfully!",
+    data: result,
+  });
+});
+
+const deletePost = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await PostService.deletePost(
+    req.params.id as string,
+    req.user!.id
+  );
+  sendResponse(res, {
+    message: "Post deleted successfully!",
     data: result,
   });
 });
@@ -114,4 +126,5 @@ export const postController = {
   removeImage,
   updateCommentAccess,
   changePostStatus,
+  deletePost,
 };

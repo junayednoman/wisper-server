@@ -18,6 +18,11 @@ router.get(
   authorize(UserRole.BUSINESS, UserRole.PERSON, UserRole.ADMIN),
   jobController.getAllJobs
 );
+router.get(
+  "/:id",
+  authorize(UserRole.BUSINESS, UserRole.PERSON, UserRole.ADMIN),
+  jobController.getSingleJob
+);
 router.patch(
   "/:id",
   authorize(UserRole.BUSINESS),

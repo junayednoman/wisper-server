@@ -10,8 +10,16 @@ const sendConnectionRequest = async (authId: string, payload: Connection) => {
   payload.requesterId = authId;
   const existingConnection = await prisma.connection.findFirst({
     where: {
-      requesterId: authId,
-      receiverId: payload.receiverId,
+      OR: [
+        {
+          requesterId: authId,
+          receiverId: payload.receiverId,
+        },
+        {
+          requesterId: payload.receiverId,
+          receiverId: authId,
+        },
+      ],
     },
   });
 

@@ -65,6 +65,30 @@ const getAllJobs = async (
     skip,
     take,
     orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+    select: {
+      id: true,
+      author: {
+        select: {
+          id: true,
+          business: {
+            select: {
+              id: true,
+              name: true,
+              industry: true,
+              address: true,
+              image: true,
+            },
+          },
+        },
+      },
+      title: true,
+      description: true,
+      salary: true,
+      compensationType: true,
+      location: true,
+      type: true,
+      createdAt: true,
+    },
   });
 
   const total = await prisma.job.count({
@@ -77,6 +101,31 @@ const getAllJobs = async (
     total,
   };
   return { meta, jobs };
+};
+
+const getSingleJob = async (id: string) => {
+  const job = await prisma.job.findFirstOrThrow({
+    where: {
+      id,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          business: {
+            select: {
+              id: true,
+              name: true,
+              industry: true,
+              address: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return job;
 };
 
 const updateJob = async (id: string, userId: string, payload: Partial<Job>) => {
@@ -114,4 +163,10 @@ const deleteJob = async (id: string, userId: string) => {
   return result;
 };
 
-export const jobServices = { createJob, getAllJobs, updateJob, deleteJob };
+export const jobServices = {
+  createJob,
+  getAllJobs,
+  getSingleJob,
+  updateJob,
+  deleteJob,
+};
