@@ -411,8 +411,8 @@ model Boost {
   packageId      String
   package        BoostPackage @relation(fields: [packageId], references: [id])
   targetIndustry String
-  impressions    Int?          @default(0)
-  clicks         Int?          @default(0)
+  impressions    Int?         @default(0)
+  clicks         Int?         @default(0)
   status         BoostStatus  @default(ACTIVE)
   createdAt      DateTime     @default(now())
 
