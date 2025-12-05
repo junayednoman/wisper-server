@@ -1,3 +1,4 @@
+import { chatService } from "../../modules/chat/chat.service";
 import { messageService } from "../../modules/message/message.service";
 import prisma from "../../utils/prisma";
 import { TMessagePayload } from "../interface/message.interface";
@@ -15,9 +16,10 @@ export const sendMessage = eventHandler<TMessagePayload>(
 
     data.senderId = socket.auth.id;
 
-    socket.to(data.chatId).emit("newMessage", data);
-
     await messageService.sendMessage(socket.auth.id, data);
+    const chatList = await chatService.getMyChats(socket.auth.id, {}, {});
+    socket.emit("chatList", chatList);
+    socket.to(data.chatId).emit("newMessage", data);
 
     ackHandler(ack, {
       success: true,

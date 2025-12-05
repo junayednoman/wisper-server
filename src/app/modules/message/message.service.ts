@@ -83,9 +83,7 @@ const getMessagesByChat = async (
     where: { id: chatId },
     select: {
       participants: {
-        select: {
-          authId: true,
-        },
+        select: { authId: true },
       },
     },
   });
@@ -96,23 +94,56 @@ const getMessagesByChat = async (
   }
 
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+
   const messages = await prisma.message.findMany({
     where: { chatId },
+    select: {
+      id: true,
+      chatId: true,
+      sender: {
+        select: {
+          person: { select: { id: true, name: true, image: true } },
+          business: { select: { id: true, name: true, image: true } },
+        },
+      },
+      text: true,
+      file: true,
+      fileType: true,
+      isEdited: true,
+      createdAt: true,
+      messagesSeen: {
+        select: {
+          participant: {
+            select: {
+              auth: { select: { id: true } },
+            },
+          },
+        },
+      },
+    },
     skip,
     take,
     orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "asc" },
   });
 
-  const total = await prisma.message.count({
-    where: { chatId },
+  const formattedMessages = messages.map(msg => {
+    const seenIds = msg.messagesSeen.map(s => s.participant.auth.id);
+
+    const isRead = seenIds.includes(authId);
+
+    return {
+      ...msg,
+      messagesSeen: undefined,
+      isRead,
+    };
   });
 
-  const meta = {
-    page,
-    limit: take,
-    total,
+  const total = await prisma.message.count({ where: { chatId } });
+
+  return {
+    meta: { page, limit: take, total },
+    messages: formattedMessages,
   };
-  return { meta, messages };
 };
 
 const updateMessage = async (
