@@ -20,3 +20,8 @@ export type TEditMessage = {
 export type TDeleteMessage = {
   messageId: string;
 };
+
+export type TSeenMessage = {
+  chatId: string;
+  messageIds: string[];
+};
