@@ -8,18 +8,26 @@ import eventHandler from "../utils/eventHandler";
 
 export const sendMessage = eventHandler<TMessagePayload>(
   async (socket: TSocket, data, ack: TAckFn) => {
+    const authId = socket.auth.id;
     await prisma.chat.findUniqueOrThrow({
       where: {
         id: data.chatId,
       },
     });
 
-    data.senderId = socket.auth.id;
+    data.senderId = authId;
 
-    await messageService.sendMessage(socket.auth.id, data);
-    const chatList = await chatService.getMyChats(socket.auth.id, {}, {});
+    await messageService.sendMessage(authId, data);
+    const chatList = await chatService.getMyChats(authId, {}, {});
     socket.emit("chatList", chatList);
-    socket.to(data.chatId).emit("newMessage", data);
+
+    const messages = await messageService.getMessagesByChat(
+      authId,
+      data.chatId,
+      {}
+    );
+
+    socket.to(data.chatId).emit("chatMessages", messages);
 
     ackHandler(ack, {
       success: true,

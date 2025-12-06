@@ -7,3 +7,16 @@ export type TMessagePayload = {
   file?: string;
   fileType?: FileType;
 };
+
+export type TEditMessage = {
+  messageId: string;
+  payload: {
+    text: string;
+    file?: string;
+    fileType?: FileType;
+  };
+};
+
+export type TDeleteMessage = {
+  messageId: string;
+};
