@@ -5,9 +5,10 @@ export const sendMessageZod = z
     chatId: z
       .string()
       .uuid({ message: "chatId is required and must be a valid UUID" }),
-    text: z.string().min(1, { message: "Text is required" }),
+    text: z.string().optional(),
     file: z.string().optional(),
     fileType: z.enum(["IMAGE", "VIDEO", "AUDIO", "DOC"]).optional(),
+    link: z.string().optional(),
   })
   .refine(
     data => {

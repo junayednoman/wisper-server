@@ -1,4 +1,4 @@
-import { ChatRole, ChatType, Prisma } from "@prisma/client";
+import { ChatRole, ChatType, FileType, Prisma } from "@prisma/client";
 import prisma from "../../utils/prisma";
 import {
   TBlockParticipantZod,
@@ -165,6 +165,65 @@ const getMyChats = async (
   const total = await prisma.chat.count({ where: whereConditions });
   const meta = { page, limit: take, total };
   return { meta, chats };
+};
+
+const getChatLinks = async (authId: string, chatId: string) => {
+  await prisma.chat.findUniqueOrThrow({
+    where: {
+      id: chatId,
+      participants: {
+        some: { authId },
+      },
+    },
+  });
+
+  const links = await prisma.message.findMany({
+    where: {
+      chatId,
+      link: {
+        not: null,
+      },
+    },
+    select: {
+      id: true,
+      link: true,
+    },
+  });
+
+  return links;
+};
+
+const getChatFiles = async (
+  authId: string,
+  chatId: string,
+  query: { type: FileType }
+) => {
+  const { type } = query;
+  await prisma.chat.findUniqueOrThrow({
+    where: {
+      id: chatId,
+      participants: {
+        some: { authId },
+      },
+    },
+  });
+
+  const links = await prisma.message.findMany({
+    where: {
+      chatId,
+      file: {
+        not: null,
+      },
+      fileType: type ? type : { not: FileType.DOC },
+    },
+    select: {
+      id: true,
+      file: true,
+      fileType: true,
+    },
+  });
+
+  return links;
 };
 
 const muteChat = async (authId: string, payload: TMuteChatZod) => {
@@ -396,6 +455,8 @@ const deleteChat = async (authId: string, chatId: string) => {
 export const chatService = {
   createChat,
   getMyChats,
+  getChatLinks,
+  getChatFiles,
   muteChat,
   unmuteChat,
   removeParticipant,

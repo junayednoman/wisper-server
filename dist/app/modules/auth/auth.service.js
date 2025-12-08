@@ -21,6 +21,9 @@ const login = async (payload) => {
                 {
                     status: client_1.UserStatus.DELETED,
                 },
+                {
+                    status: client_1.UserStatus.PENDING,
+                },
             ],
         },
     });

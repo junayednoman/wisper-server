@@ -126,6 +126,7 @@ const getMyProfile = async (id) => {
         },
         select: {
             id: true,
+            role: true,
             createdAt: true,
             person: {
                 select: {

@@ -31,9 +31,6 @@ model Auth {
   mutedChats              ChatMute[]
   messages                Message[]
   chatDeletions           ChatDeletion[]
-  docs                    Doc[]
-  links                   Link[]
-  medias                  Media[]
   givenRecommendations    Recommendation[]         @relation("RecommendationGiver")
   receivedRecommendations Recommendation[]         @relation("RecommendationReceiver")
   complainedComplaints    Complaint[]              @relation("Complainant")
@@ -47,6 +44,7 @@ model Auth {
   recommendations         Recommendation[]
   callParticipants        CallParticipant[]
   payments                Payment[]
+  notifications           Notification[]
 
   @@map("auths")
 }
@@ -240,9 +238,6 @@ model Chat {
   chatMutes               ChatMute[]
   messages                Message[]
   chatDeletions           ChatDeletion[]
-  docs                    Doc[]
-  links                   Link[]
-  medias                  Media[]
 
   @@map("chats")
 }
@@ -301,7 +296,8 @@ model Message {
   chat         Chat          @relation(fields: [chatId], references: [id])
   senderId     String
   sender       Auth          @relation(fields: [senderId], references: [id])
-  text         String
+  text         String?
+  link         String?
   file         String?
   fileType     FileType?
   isEdited     Boolean       @default(false)
@@ -320,43 +316,6 @@ model MessageSeen {
   seenAt        DateTime        @default(now())
 
   @@map("message_seen")
-}
-
-model Doc {
-  id        String   @id @default(uuid())
-  chatId    String
-  chat      Chat     @relation(fields: [chatId], references: [id])
-  authorId  String
-  author    Auth     @relation(fields: [authorId], references: [id])
-  url       String
-  createdAt DateTime @default(now())
-
-  @@map("docs")
-}
-
-model Link {
-  id        String   @id @default(uuid())
-  chatId    String
-  chat      Chat     @relation(fields: [chatId], references: [id])
-  authorId  String
-  author    Auth     @relation(fields: [authorId], references: [id])
-  link      String
-  createdAt DateTime @default(now())
-
-  @@map("links")
-}
-
-model Media {
-  id        String    @id @default(uuid())
-  chatId    String
-  chat      Chat      @relation(fields: [chatId], references: [id])
-  authorId  String
-  author    Auth      @relation(fields: [authorId], references: [id])
-  file      String
-  fileType  MediaType @default(IMAGE)
-  createdAt DateTime  @default(now())
-
-  @@map("medias")
 }
 
 model Recommendation {
@@ -480,6 +439,7 @@ model Transaction {
 model Notification {
   id         String   @id @default(uuid())
   receiverId String
+  receiver   Auth     @relation(fields: [receiverId], references: [id])
   title      String
   body       String
   hasSeen    Boolean  @default(false)
@@ -568,12 +528,6 @@ enum ComplaintStatus {
 enum ComplaintType {
   ACCOUNT
   POST
-}
-
-enum MediaType {
-  IMAGE
-  VIDEO
-  AUDIO
 }
 
 enum FileType {

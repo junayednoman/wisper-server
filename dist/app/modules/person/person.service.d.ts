@@ -42,6 +42,7 @@ export declare const personServices: {
     getMyProfile: (id: string) => Promise<{
         auth: {
             id: string;
+            role: import(".prisma/client").$Enums.UserRole;
             createdAt: Date;
             person: {
                 id: string;

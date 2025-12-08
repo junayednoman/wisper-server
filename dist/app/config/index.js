@@ -9,6 +9,7 @@ dotenv_1.default.config({ path: path_1.default.join(process.cwd(), ".env") });
 exports.default = {
     env: process.env.NODE_ENV,
     port: process.env.PORT,
+    socket_port: process.env.SOCKET_PORT,
     email: {
         emailSendingApi: process.env.SEND_EMAIL_URL,
     },

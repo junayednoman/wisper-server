@@ -25,6 +25,18 @@ router.get(
   chatController.getMyChats
 );
 
+router.get(
+  "/links/:id",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  chatController.getChatLinks
+);
+
+router.get(
+  "/files/:id",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  chatController.getChatFiles
+);
+
 router.patch(
   "/mute",
   authorize(UserRole.PERSON, UserRole.BUSINESS),
