@@ -61,7 +61,7 @@ const getMyChats = async (
 
   andConditions.push({ participants: { some: { authId } } });
 
-  // filter out deleted chats
+  // filter out deleted chat
   andConditions.push({
     chatDeletions: {
       none: {
@@ -110,6 +110,8 @@ const getMyChats = async (
       id: true,
       type: true,
       latestMessageAt: true,
+      groupId: true,
+      classId: true,
       participants: {
         select: {
           id: true,

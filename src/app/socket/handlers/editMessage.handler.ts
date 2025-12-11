@@ -1,4 +1,3 @@
-import { messageService } from "../../modules/message/message.service";
 import prisma from "../../utils/prisma";
 import { TEditMessage } from "../interface/message.interface";
 import { TAckFn, TSocket } from "../interface/socket.interface";
@@ -26,13 +25,46 @@ const editMessage = eventHandler<TEditMessage>(
       data: data.payload,
     });
 
-    const messages = await messageService.getMessagesByChat(
-      authId,
-      message.chatId,
-      {}
-    );
+    const newMessages = await prisma.message.findMany({
+      where: {
+        chatId: message.chatId,
+      },
+      select: {
+        id: true,
+        chatId: true,
+        sender: {
+          select: {
+            id: true,
+            person: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            business: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+        text: true,
+        file: true,
+        fileType: true,
+        isEdited: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 1,
+    });
 
-    socket.to(message.chatId).emit("chatMessages", messages);
+    socket.to(message.chatId).emit("newMessage", newMessages[0]);
+    socket.emit("newMessage", newMessages[0]);
   }
 );
 

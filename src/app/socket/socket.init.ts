@@ -18,6 +18,7 @@ export const initSocket = (server: http.Server) => {
   io.use(socketAuth);
 
   io.on("connection", (socket: any) => {
+    console.log("user connected, ", socket.auth.id);
     // add user to online user list
     const userId = socket.auth.id;
     onlineUsers[userId] = socket;

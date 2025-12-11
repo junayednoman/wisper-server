@@ -21,13 +21,46 @@ export const sendMessage = eventHandler<TMessagePayload>(
     const chatList = await chatService.getMyChats(authId, {}, {});
     socket.emit("chatList", chatList);
 
-    const messages = await messageService.getMessagesByChat(
-      authId,
-      data.chatId,
-      {}
-    );
+    const messages = await prisma.message.findMany({
+      where: {
+        chatId: data.chatId,
+      },
+      select: {
+        id: true,
+        chatId: true,
+        sender: {
+          select: {
+            id: true,
+            person: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            business: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+        text: true,
+        file: true,
+        fileType: true,
+        isEdited: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 1,
+    });
 
-    socket.to(data.chatId).emit("chatMessages", messages);
+    socket.to(data.chatId).emit("newMessage", messages[0]);
+    socket.emit("newMessage", messages[0]);
 
     ackHandler(ack, {
       success: true,
