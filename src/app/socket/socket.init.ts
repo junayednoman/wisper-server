@@ -12,6 +12,7 @@ export const initSocket = (server: http.Server) => {
   io = new Server(server, {
     cors: {
       origin: "*",
+      methods: ["GET", "POST"],
     },
   });
 
