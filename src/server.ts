@@ -1,15 +1,18 @@
 import { log } from "console";
-import { Server } from "http";
+import { createServer, Server } from "http";
 import app from "./app/app";
 import config from "./app/config";
 import { initSocket } from "./app/socket/socket.init";
 let server: Server;
 
 const main = () => {
-  server = app.listen(config.port, () => {
-    console.log(` API server is running on port: ${config.port}`);
-  });
+  server = createServer(app);
+
   initSocket(server);
+
+  server.listen(config.port, () => {
+    console.log(`Server running on port: ${config.port}`);
+  });
 };
 
 main();
