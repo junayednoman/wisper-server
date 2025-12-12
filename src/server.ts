@@ -9,13 +9,7 @@ const main = () => {
   server = app.listen(config.port, () => {
     console.log(` API server is running on port: ${config.port}`);
   });
-
-  const socketServer = new Server();
-
-  initSocket(socketServer);
-  socketServer.listen(config.socket_port, () => {
-    console.log("🚀 Socket server is running on port:", config.socket_port);
-  });
+  initSocket(server);
 };
 
 main();

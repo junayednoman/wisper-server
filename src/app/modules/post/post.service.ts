@@ -81,7 +81,6 @@ const getFeedPosts = async (userId: string, options: TPaginationOptions) => {
   authorIds.push(userId);
 
   if (authorIds.length > 1) {
-    console.log("hitting");
     andConditions.push({
       authorId: {
         in: authorIds,

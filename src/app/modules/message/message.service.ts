@@ -102,6 +102,7 @@ const getMessagesByChat = async (
       chatId: true,
       sender: {
         select: {
+          id: true,
           person: { select: { id: true, name: true, image: true } },
           business: { select: { id: true, name: true, image: true } },
         },
