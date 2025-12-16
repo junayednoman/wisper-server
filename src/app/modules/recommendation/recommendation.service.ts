@@ -22,7 +22,7 @@ const giveRecommendation = async (payload: Recommendation, authId: string) => {
   return result;
 };
 
-const getMyRecommendations = async (authId: string) => {
+const getRecommendationsByPersonId = async (authId: string) => {
   const result = await prisma.recommendation.findMany({
     where: {
       receiverId: authId,
@@ -90,6 +90,6 @@ const getClassRecommendations = async (classId: string) => {
 
 export const recommendationService = {
   giveRecommendation,
-  getMyRecommendations,
+  getRecommendationsByPersonId,
   getClassRecommendations,
 };

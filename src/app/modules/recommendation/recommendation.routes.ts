@@ -12,9 +12,9 @@ router.post(
 );
 
 router.get(
-  "/my",
+  "/:personId",
   authorize(UserRole.PERSON),
-  recommendationController.getMyRecommendations
+  recommendationController.getRecommendationsByPersonId
 );
 
 router.get(

@@ -16,7 +16,10 @@ const signUp = handleAsyncRequest(async (req: TRequest, res: Response) => {
 });
 
 const getSingle = handleAsyncRequest(async (req: TRequest, res: Response) => {
-  const result = await personServices.getSingle(req.params.id as string);
+  const result = await personServices.getSingle(
+    req.params.id as string,
+    req.user!.id
+  );
   sendResponse(res, {
     message: "User retrieved successfully!",
     data: result,

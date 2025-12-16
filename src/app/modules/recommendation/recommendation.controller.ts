@@ -15,13 +15,17 @@ const giveRecommendation = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-const getMyRecommendations = handleAsyncRequest(async (req: TRequest, res) => {
-  const result = await recommendationService.getMyRecommendations(req.user!.id);
-  sendResponse(res, {
-    message: "Recommendations retrieved successfully!",
-    data: result,
-  });
-});
+const getRecommendationsByPersonId = handleAsyncRequest(
+  async (req: TRequest, res) => {
+    const result = await recommendationService.getRecommendationsByPersonId(
+      req.params.personId!
+    );
+    sendResponse(res, {
+      message: "Recommendations retrieved successfully!",
+      data: result,
+    });
+  }
+);
 
 const getClassRecommendations = handleAsyncRequest(
   async (req: TRequest, res) => {
@@ -37,6 +41,6 @@ const getClassRecommendations = handleAsyncRequest(
 
 export const recommendationController = {
   giveRecommendation,
-  getMyRecommendations,
+  getRecommendationsByPersonId,
   getClassRecommendations,
 };

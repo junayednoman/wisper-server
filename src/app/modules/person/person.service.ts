@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from "@prisma/client";
+import { ConnectionStatus, UserRole, UserStatus } from "@prisma/client";
 import prisma from "../../utils/prisma";
 import { TPersonSignUp, TUpdatePersonProfile } from "./person.validation";
 import ApiError from "../../middlewares/classes/ApiError";
@@ -86,7 +86,7 @@ const signUp = async (payload: TPersonSignUp) => {
   return result;
 };
 
-const getSingle = async (id: string) => {
+const getSingle = async (id: string, currentAuthId: string) => {
   const result = await prisma.auth.findUnique({
     where: {
       id: id,
@@ -110,26 +110,23 @@ const getSingle = async (id: string) => {
     },
   });
 
-  const recommendations = await prisma.recommendation.findMany({
+  const isConnected = await prisma.connection.findFirst({
     where: {
-      receiverId: id,
-    },
-    select: {
-      id: true,
-      receiver: {
-        select: {
-          person: {
-            select: {
-              image: true,
-              name: true,
-            },
-          },
+      OR: [
+        {
+          requesterId: currentAuthId,
+          receiverId: id,
         },
-      },
+        {
+          requesterId: id,
+          receiverId: currentAuthId,
+        },
+      ],
+      status: ConnectionStatus.ACCEPTED,
     },
   });
 
-  return { auth: result, recommendations };
+  return { auth: result, isConnected: !!isConnected };
 };
 
 const getMyProfile = async (id: string) => {
