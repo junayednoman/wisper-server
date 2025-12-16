@@ -160,27 +160,7 @@ const getMyProfile = async (id: string) => {
       },
     },
   });
-
-  const recommendations = await prisma.recommendation.findMany({
-    where: {
-      receiverId: id,
-    },
-    select: {
-      id: true,
-      receiver: {
-        select: {
-          person: {
-            select: {
-              image: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  return { auth: result, recommendations };
+  return { auth: result };
 };
 
 const updateMyProfile = async (
