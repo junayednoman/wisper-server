@@ -25,7 +25,10 @@ const getMyProfile = handleAsyncRequest(
 );
 
 const getSingle = handleAsyncRequest(async (req: TRequest, res: Response) => {
-  const result = await businessServices.getSingle(req.params.id as string);
+  const result = await businessServices.getSingle(
+    req.params.id as string,
+    req.user!.id
+  );
   sendResponse(res, {
     message: "User retrieved successfully!",
     data: result,
