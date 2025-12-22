@@ -198,7 +198,10 @@ const updateProfileImage = async (email: string, file: TFile) => {
   return result;
 };
 
-const getUserRoles = async (options: TPaginationOptions) => {
+const getUserRoles = async (
+  options: TPaginationOptions,
+  currentAuthId: string
+) => {
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
   const roles = await prisma.auth.findMany({
     where: {
@@ -219,10 +222,50 @@ const getUserRoles = async (options: TPaginationOptions) => {
           receivedRecommendations: true,
         },
       },
+      requestedConnections: {
+        where: {
+          receiverId: currentAuthId,
+        },
+        select: {
+          status: true,
+          requesterId: true,
+        },
+      },
+      receivedConnections: {
+        where: {
+          requesterId: currentAuthId,
+        },
+        select: {
+          status: true,
+          receiverId: true,
+        },
+      },
     },
     skip,
     take,
     orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+  });
+
+  const mappedRoles = roles.map(user => {
+    const outgoing = user.receivedConnections[0];
+    const incoming = user.requestedConnections[0];
+
+    let connectionStatus = "NOT_CONNECTED";
+
+    if (outgoing) {
+      connectionStatus =
+        outgoing.status === "PENDING" ? "REQUEST_SENT" : outgoing.status;
+    }
+
+    if (incoming) {
+      connectionStatus =
+        incoming.status === "PENDING" ? "REQUEST_RECEIVED" : incoming.status;
+    }
+
+    return {
+      ...user,
+      connectionStatus,
+    };
   });
 
   const total = await prisma.auth.count({
@@ -236,7 +279,7 @@ const getUserRoles = async (options: TPaginationOptions) => {
     limit: take,
     total,
   };
-  return { meta, roles };
+  return { meta, roles: mappedRoles };
 };
 
 export const personServices = {

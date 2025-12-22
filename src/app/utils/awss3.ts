@@ -1,8 +1,4 @@
-import {
-  DeleteObjectCommand,
-  ObjectCannedACL,
-  PutObjectCommand,
-} from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { S3Client } from "@aws-sdk/client-s3";
 import config from "../config";
 import multer, { memoryStorage } from "multer";
@@ -10,7 +6,7 @@ import { TFile } from "../interface/file.interface";
 import ApiError from "../middlewares/classes/ApiError";
 
 export const s3Client = new S3Client({
-  endpoint: config.aws.endpoint as string,
+  // endpoint: config.aws.endpoint as string,
   region: `${config.aws.region}`,
   credentials: {
     accessKeyId: `${config.aws.accessKeyId}`,
@@ -24,14 +20,13 @@ export const upload = multer({
 
 //upload a single file
 export const uploadToS3 = async (file: TFile): Promise<string> => {
-  const fileName = `images/noman/${Date.now()}-${file.originalname}`;
+  const fileName = `wisper/${Date.now()}-${file.originalname}`;
 
   const command = new PutObjectCommand({
     Bucket: config.aws.bucket,
     Key: fileName,
     Body: file.buffer,
     ContentType: file.mimetype,
-    ACL: ObjectCannedACL.public_read, //access public read
   });
 
   try {
@@ -39,7 +34,7 @@ export const uploadToS3 = async (file: TFile): Promise<string> => {
     if (!key) {
       throw new ApiError(400, "File Upload failed");
     }
-    const url = `${config?.aws?.s3BaseUrl}/${fileName}`;
+    const url = `${config?.aws?.s3BaseUrl}${fileName}`;
     if (!url) throw new ApiError(400, "File Upload failed");
 
     return url;
@@ -52,7 +47,7 @@ export const uploadToS3 = async (file: TFile): Promise<string> => {
 // // delete file from s3 bucket
 export const deleteFromS3 = async (url: string) => {
   const key = decodeURIComponent(
-    url.split(".digitaloceanspaces.com/")[1] as string
+    url.split(config.aws.s3BaseUrl as string)[1] as string
   );
 
   try {

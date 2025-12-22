@@ -64,7 +64,7 @@ const updateProfileImage = handleAsyncRequest(
 
 const getUserRoles = handleAsyncRequest(async (req: TRequest, res) => {
   const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
-  const result = await personServices.getUserRoles(options);
+  const result = await personServices.getUserRoles(options, req.user!.id);
   sendResponse(res, {
     message: "Roles retrieved successfully!",
     data: result,

@@ -37,6 +37,12 @@ router.get(
   chatController.getChatFiles
 );
 
+router.get(
+  "/mute-info/:chatId",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  chatController.getChatMuteInfo
+);
+
 router.patch(
   "/mute",
   authorize(UserRole.PERSON, UserRole.BUSINESS),

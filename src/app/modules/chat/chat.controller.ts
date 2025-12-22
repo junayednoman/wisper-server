@@ -45,6 +45,14 @@ const getChatFiles = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const getChatMuteInfo = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await chatService.getChatMuteInfo(req.params.chatId as string);
+  sendResponse(res, {
+    message: "Chat mute info retrieved successfully!",
+    data: result,
+  });
+});
+
 const muteChat = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await chatService.muteChat(req.user!.id, req.body);
   sendResponse(res, {
@@ -109,6 +117,7 @@ export const chatController = {
   getMyChats,
   getChatLinks,
   getChatFiles,
+  getChatMuteInfo,
   muteChat,
   unmuteChat,
   removeParticipant,

@@ -228,6 +228,21 @@ const getChatFiles = async (
   return links;
 };
 
+const getChatMuteInfo = async (chatId: string) => {
+  const muteInfos = await prisma.chatMute.findUnique({
+    where: {
+      chatId,
+    },
+    select: {
+      authId: true,
+      muteFor: true,
+      mutedAt: true,
+    },
+  });
+
+  return muteInfos;
+};
+
 const muteChat = async (authId: string, payload: TMuteChatZod) => {
   await prisma.chat.findUniqueOrThrow({
     where: {
@@ -276,6 +291,7 @@ const removeParticipant = async (
   await prisma.chat.findUniqueOrThrow({
     where: {
       id: payload.chatId,
+      OR: [{ type: ChatType.GROUP }, { type: ChatType.CLASS }],
     },
   });
 
@@ -459,6 +475,7 @@ export const chatService = {
   getMyChats,
   getChatLinks,
   getChatFiles,
+  getChatMuteInfo,
   muteChat,
   unmuteChat,
   removeParticipant,

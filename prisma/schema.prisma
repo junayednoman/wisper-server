@@ -281,7 +281,7 @@ model ChatMute {
   id      String   @id @default(uuid())
   authId  String
   auth    Auth     @relation(fields: [authId], references: [id])
-  chatId  String
+  chatId  String   @unique
   chat    Chat     @relation(fields: [chatId], references: [id])
   muteFor MuteFor
   mutedAt DateTime @default(now())
