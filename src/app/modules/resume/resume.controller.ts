@@ -14,7 +14,7 @@ const addResume = handleAsyncRequest(async (req: TRequest, res) => {
 });
 
 const getMyResumes = handleAsyncRequest(async (req: TRequest, res) => {
-  const result = await resumeService.getMyResumes(req.user!.id);
+  const result = await resumeService.getMyResumes(req.params.authId as string);
   sendResponse(res, {
     message: "Resumes retrieved successfully!",
     data: result,

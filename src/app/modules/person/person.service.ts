@@ -185,7 +185,6 @@ const updateProfileImage = async (email: string, file: TFile) => {
     },
   });
   const image = await uploadToS3(file);
-  console.log("image, ", image);
   const result = await prisma.person.update({
     where: {
       email,

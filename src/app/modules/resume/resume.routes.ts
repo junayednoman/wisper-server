@@ -13,7 +13,11 @@ router.post(
   resumeController.addResume
 );
 
-router.get("/", authorize(UserRole.PERSON), resumeController.getMyResumes);
+router.get(
+  "/:authId",
+  authorize(UserRole.PERSON),
+  resumeController.getMyResumes
+);
 router.patch(
   "/:id",
   authorize(UserRole.PERSON),
