@@ -62,6 +62,8 @@ const getSingleGroup = async (id: string) => {
       description: true,
       createdAt: true,
       image: true,
+      isPrivate: true,
+      allowInvitation: true,
       chat: {
         select: {
           _count: {

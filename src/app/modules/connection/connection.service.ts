@@ -175,7 +175,7 @@ const deleteConnection = async (id: string, authId: string) => {
   });
 
   if (connection.requesterId !== authId && connection.receiverId !== authId)
-    throw new ApiError(401, "Unauthorized!");
+    throw new ApiError(401, "Unauthorized 2!");
 
   const result = await prisma.connection.delete({
     where: {

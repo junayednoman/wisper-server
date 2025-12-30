@@ -25,8 +25,9 @@ const createChat = async (authId: string, payload: TCreateChatZod) => {
     },
   });
 
-  if (existingChat)
-    throw new ApiError(400, "Chat already exists with this participant!");
+  if (existingChat) {
+    return existingChat;
+  }
 
   const chatPayload = {
     type: ChatType.INDIVIDUAL,

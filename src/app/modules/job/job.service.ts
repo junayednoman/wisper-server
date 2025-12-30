@@ -90,6 +90,7 @@ const getAllJobs = async (
       responsibilities: true,
       requirements: true,
       applicationType: true,
+      locationType: true,
       location: true,
       type: true,
       createdAt: true,
@@ -130,7 +131,13 @@ const getSingleJob = async (id: string) => {
       },
     },
   });
-  return job;
+
+  const favoriteJob = await prisma.favoriteJob.findFirst({
+    where: {
+      jobId: id,
+    },
+  });
+  return { ...job, isFavorite: favoriteJob ? true : false };
 };
 
 const updateJob = async (id: string, userId: string, payload: Partial<Job>) => {

@@ -173,7 +173,8 @@ model Job {
   experienceLevel  JobExperienceLevel
   compensationType JobCompensationType
   salary           Float
-  location         JobLocation
+  locationType     JobLocationType
+  location         String?
   industry         String
   qualification    JobQualification
   requirements     String[]
@@ -567,7 +568,7 @@ enum JobQualification {
   OND
 }
 
-enum JobLocation {
+enum JobLocationType {
   ON_SITE
   REMOTE
   HYBRID
