@@ -15,12 +15,12 @@ const login = handleAsyncRequest(async (req: Request, res: Response) => {
   const cookieOptions: any = {
     httpOnly: true,
     secure: config.env === "production", // Use secure in production
-    maxAge: 60 * day,
+    maxAge: 45 * day,
   };
 
   if (config.env === "production") cookieOptions.sameSite = "none";
 
-  res.cookie("refreshToken", refreshToken, cookieOptions);
+  res.cookie("wisperRefreshToken", refreshToken, cookieOptions);
 
   sendResponse(res, {
     message: "Logged in successfully!",
@@ -30,7 +30,7 @@ const login = handleAsyncRequest(async (req: Request, res: Response) => {
 
 const getAll = handleAsyncRequest(async (req: TRequest, res: Response) => {
   const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
-  const result = await authServices.getAll(options);
+  const result = await authServices.getAll(options, req.query);
   sendResponse(res, {
     message: "Users retrieved successfully!",
     data: result,
@@ -96,6 +96,14 @@ const toggleNotificationPermission = handleAsyncRequest(
   }
 );
 
+const logout = handleAsyncRequest(async (_req: Request, res: Response) => {
+  res.clearCookie("wisperRefreshToken", { httpOnly: true });
+  sendResponse(res, {
+    message: "Logged out successfully!",
+    data: null,
+  });
+});
+
 export const authController = {
   login,
   getAll,
@@ -104,4 +112,5 @@ export const authController = {
   changeAccountStatus,
   refreshToken,
   toggleNotificationPermission,
+  logout,
 };

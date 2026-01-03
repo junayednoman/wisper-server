@@ -7,10 +7,21 @@ const getDashboardStats = async () => {
       NOT: {
         role: "ADMIN",
       },
+      status: "ACTIVE",
     },
   });
-  const totalPersons = await prisma.person.count();
-  const totalBusinesses = await prisma.business.count();
+  const totalPersons = await prisma.auth.count({
+    where: {
+      role: "PERSON",
+      status: "ACTIVE",
+    },
+  });
+  const totalBusinesses = await prisma.auth.count({
+    where: {
+      role: "BUSINESS",
+      status: "ACTIVE",
+    },
+  });
   return { totalUsers, totalPersons, totalBusinesses };
 };
 
@@ -29,6 +40,7 @@ export const getUserOverview = async (query: Record<string, unknown>) => {
         lte: endDate,
       },
       role: role ? role : undefined,
+      status: "ACTIVE",
     },
     select: { createdAt: true },
   });

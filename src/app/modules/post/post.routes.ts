@@ -26,14 +26,9 @@ router.get(
   postController.getSingle
 );
 router.get(
-  "/my",
-  authorize(UserRole.PERSON, UserRole.BUSINESS),
-  postController.myPosts
-);
-router.get(
-  "/user/:userId",
-  authorize(UserRole.PERSON, UserRole.BUSINESS),
-  postController.userPosts
+  "/all",
+  authorize(UserRole.PERSON, UserRole.BUSINESS, UserRole.ADMIN),
+  postController.allPosts
 );
 router.patch(
   "/:id",

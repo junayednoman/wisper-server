@@ -1,7 +1,6 @@
 import prisma from "../../utils/prisma";
 
 const addOrRemoveFavoriteJob = async (authId: string, jobId: string) => {
-  console.log("jobId,", jobId);
   await prisma.job.findUniqueOrThrow({ where: { id: jobId } });
   const existingFavorite = await prisma.favoriteJob.findFirst({
     where: {

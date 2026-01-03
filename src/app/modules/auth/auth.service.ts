@@ -87,7 +87,10 @@ const login = async (payload: TLoginInput) => {
   };
 };
 
-const getAll = async (options: TPaginationOptions) => {
+const getAll = async (
+  options: TPaginationOptions,
+  query: Record<string, any>
+) => {
   const andConditions: Prisma.AuthWhereInput[] = [];
 
   andConditions.push({
@@ -101,14 +104,41 @@ const getAll = async (options: TPaginationOptions) => {
     ],
   });
 
+  if (query.searchTerm) {
+    andConditions.push({
+      OR: [
+        {
+          email: { contains: query.searchTerm, mode: "insensitive" },
+        },
+        {
+          person: {
+            OR: [
+              { name: { contains: query.searchTerm, mode: "insensitive" } },
+              { title: { contains: query.searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+        {
+          business: {
+            OR: [
+              { name: { contains: query.searchTerm, mode: "insensitive" } },
+              { industry: { contains: query.searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+      ],
+    });
+  }
+
   const whereConditions: Prisma.AuthWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};
 
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
-  const personAuths = await prisma.auth.findMany({
+  const auths = await prisma.auth.findMany({
     where: whereConditions,
     select: {
       id: true,
+      role: true,
       createdAt: true,
       person: {
         select: {
@@ -148,7 +178,7 @@ const getAll = async (options: TPaginationOptions) => {
     limit: take,
     total,
   };
-  return { meta, personAuths };
+  return { meta, auths };
 };
 
 const resetPassword = async (payload: TResetPasswordInput) => {

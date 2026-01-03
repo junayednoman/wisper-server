@@ -35,21 +35,9 @@ const getSingle = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-const myPosts = handleAsyncRequest(async (req: TRequest, res) => {
+const allPosts = handleAsyncRequest(async (req: TRequest, res) => {
   const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
-  const result = await PostService.userPosts(req.user!.id, options, req.query);
-  sendResponse(res, {
-    message: "Posts retrieved successfully!",
-    data: result,
-  });
-});
-
-const userPosts = handleAsyncRequest(async (req: TRequest, res) => {
-  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
-  const result = await PostService.userPosts(
-    req.params.userId as string,
-    options
-  );
+  const result = await PostService.allPosts(options, req.query);
   sendResponse(res, {
     message: "Posts retrieved successfully!",
     data: result,
@@ -120,8 +108,7 @@ export const postController = {
   create,
   getFeedPosts,
   getSingle,
-  myPosts,
-  userPosts,
+  allPosts,
   update,
   removeImage,
   updateCommentAccess,

@@ -105,6 +105,16 @@ const sendOtp = async (email: string) => {
           name: true,
         },
       },
+      business: {
+        select: {
+          name: true,
+        },
+      },
+      admin: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
 
@@ -131,7 +141,13 @@ const sendOtp = async (email: string) => {
   // send email
   const subject = "Your One-Time Password (OTP)";
   const path = "./src/app/emailTemplates/otp.html";
-  sendEmail(email, subject, path, { otp, name: auth.person?.name as string });
+  sendEmail(email, subject, path, {
+    otp,
+    name:
+      (auth?.person?.name as string) ||
+      (auth?.business?.name as string) ||
+      (auth?.admin?.name as string),
+  });
 };
 
 export const otpServices = {

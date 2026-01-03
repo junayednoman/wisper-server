@@ -209,18 +209,23 @@ const getSingle = async (id: string) => {
   return result;
 };
 
-const userPosts = async (
-  id: string,
+const allPosts = async (
   options: TPaginationOptions,
   query?: Record<string, any>
 ) => {
   const andConditions: Prisma.PostWhereInput[] = [];
+
   let postStatus = PostStatus.ACTIVE;
   if (query?.status) postStatus = query.status;
   andConditions.push({
-    authorId: id,
     status: postStatus,
   });
+
+  if (query?.authorId) {
+    andConditions.push({
+      authorId: query.authorId,
+    });
+  }
 
   const whereConditions: Prisma.PostWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};
@@ -431,7 +436,7 @@ export const PostService = {
   create,
   getFeedPosts,
   getSingle,
-  userPosts,
+  allPosts,
   update,
   removeImage,
   updateCommentAccess,

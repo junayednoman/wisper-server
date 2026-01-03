@@ -109,6 +109,27 @@ const getAllComplaints = async (
           caption: true,
           views: true,
           createdAt: true,
+          author: {
+            select: {
+              id: true,
+              person: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                  title: true,
+                },
+              },
+              business: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                  industry: true,
+                },
+              },
+            },
+          },
         },
       },
     },
