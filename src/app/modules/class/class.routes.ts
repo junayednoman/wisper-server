@@ -19,6 +19,8 @@ router.post(
   classController.createClass
 );
 
+router.get("/", authorize(UserRole.ADMIN), classController.getAllClasses);
+
 router.get(
   "/:id",
   authorize(UserRole.PERSON, UserRole.BUSINESS),

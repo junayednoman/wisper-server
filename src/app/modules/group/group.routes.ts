@@ -19,6 +19,8 @@ router.post(
   groupController.createGroup
 );
 
+router.get("/", authorize(UserRole.ADMIN), groupController.getAllGroups);
+
 router.get(
   "/:id",
   authorize(UserRole.PERSON, UserRole.BUSINESS),

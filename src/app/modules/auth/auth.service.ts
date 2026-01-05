@@ -129,6 +129,11 @@ const getAll = async (
       ],
     });
   }
+  if (query.role) {
+    andConditions.push({
+      role: query.role,
+    });
+  }
 
   const whereConditions: Prisma.AuthWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};

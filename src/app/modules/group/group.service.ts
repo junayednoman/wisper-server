@@ -1,9 +1,13 @@
-import { ChatRole, ChatType } from "@prisma/client";
+import { ChatRole, ChatType, Prisma } from "@prisma/client";
 import ApiError from "../../middlewares/classes/ApiError";
 import prisma from "../../utils/prisma";
 import { TCreateGroup, TUpdateGroupData } from "./group.validation";
 import { TFile } from "../../interface/file.interface";
 import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
+import {
+  calculatePagination,
+  TPaginationOptions,
+} from "../../utils/paginationCalculation";
 
 const createGroup = async (payload: TCreateGroup, authId: string) => {
   const { members, ...groupPayload } = payload;
@@ -51,6 +55,56 @@ const createGroup = async (payload: TCreateGroup, authId: string) => {
   return result;
 };
 
+const getAllGroups = async (
+  options: TPaginationOptions,
+  query: Record<string, any>
+) => {
+  const andConditions: Prisma.GroupWhereInput[] = [];
+
+  if (query.searchTerm) {
+    andConditions.push({
+      OR: [{ name: { contains: query.searchTerm, mode: "insensitive" } }],
+    });
+  }
+
+  const whereConditions: Prisma.GroupWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+
+  const groups = await prisma.group.findMany({
+    where: whereConditions,
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      createdAt: true,
+      chat: {
+        select: {
+          _count: {
+            select: {
+              participants: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+    skip,
+    take,
+  });
+
+  const total = await prisma.group.count({
+    where: whereConditions,
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+  return { meta, groups };
+};
+
 const getSingleGroup = async (id: string) => {
   const result = await prisma.group.findUnique({
     where: {
@@ -78,13 +132,43 @@ const getSingleGroup = async (id: string) => {
   return result;
 };
 
-const getGroupMembers = async (groupId: string) => {
-  const members = await prisma.chatParticipant.findMany({
-    where: {
-      chat: {
-        groupId: groupId,
-      },
+const getGroupMembers = async (
+  id: string,
+  options: TPaginationOptions,
+  query: Record<string, any>
+) => {
+  const andConditions: Prisma.ChatParticipantWhereInput[] = [];
+
+  andConditions.push({
+    chat: {
+      OR: [{ groupId: id }, { classId: id }],
     },
+  });
+
+  if (query.searchTerm) {
+    andConditions.push({
+      auth: {
+        OR: [
+          {
+            person: {
+              name: { contains: query.searchTerm, mode: "insensitive" },
+            },
+          },
+          {
+            business: {
+              name: { contains: query.searchTerm, mode: "insensitive" },
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  const whereConditions: Prisma.ChatParticipantWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+  const members = await prisma.chatParticipant.findMany({
+    where: whereConditions,
     select: {
       id: true,
       role: true,
@@ -106,9 +190,21 @@ const getGroupMembers = async (groupId: string) => {
         },
       },
     },
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { joinedAt: "desc" },
+    skip,
+    take,
   });
 
-  return members;
+  const total = await prisma.chatParticipant.count({
+    where: whereConditions,
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+  return { meta, members };
 };
 
 const addGroupMember = async (
@@ -235,5 +331,6 @@ export const groupServices = {
   updateGroupData,
   toggleGroupVisibility,
   toggleGroupInvitationAccess,
+  getAllGroups,
   getGroupMembers,
 };

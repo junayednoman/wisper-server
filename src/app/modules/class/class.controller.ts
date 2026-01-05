@@ -1,6 +1,7 @@
 import { TFile } from "../../interface/file.interface";
 import { TRequest } from "../../interface/global.interface";
 import handleAsyncRequest from "../../utils/handleAsyncRequest";
+import pick from "../../utils/pick";
 import { sendResponse } from "../../utils/sendResponse";
 import { classServices } from "./class.service";
 
@@ -10,6 +11,15 @@ const createClass = handleAsyncRequest(async (req: TRequest, res) => {
     message: "Class created successfully!",
     data: result,
     status: 201,
+  });
+});
+
+const getAllClasses = handleAsyncRequest(async (req: TRequest, res) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await classServices.getAllClasses(options, req.query);
+  sendResponse(res, {
+    message: "Classes retrieved successfully!",
+    data: result,
   });
 });
 
@@ -87,6 +97,7 @@ const toggleClassInvitationAccess = handleAsyncRequest(
 
 export const classController = {
   createClass,
+  getAllClasses,
   getSingleClass,
   addClassMember,
   changeClassImage,

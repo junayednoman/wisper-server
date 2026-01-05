@@ -1,9 +1,13 @@
-import { ChatRole, ChatType } from "@prisma/client";
+import { ChatRole, ChatType, Prisma } from "@prisma/client";
 import ApiError from "../../middlewares/classes/ApiError";
 import prisma from "../../utils/prisma";
 import { TCreateClass, TUpdateClassData } from "./class.validation";
 import { TFile } from "../../interface/file.interface";
 import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
+import {
+  calculatePagination,
+  TPaginationOptions,
+} from "../../utils/paginationCalculation";
 
 const createClass = async (payload: TCreateClass, authId: string) => {
   const { members, ...classPayload } = payload;
@@ -49,6 +53,56 @@ const createClass = async (payload: TCreateClass, authId: string) => {
   });
 
   return result;
+};
+
+const getAllClasses = async (
+  options: TPaginationOptions,
+  query: Record<string, any>
+) => {
+  const andConditions: Prisma.ClassWhereInput[] = [];
+
+  if (query.searchTerm) {
+    andConditions.push({
+      OR: [{ name: { contains: query.searchTerm, mode: "insensitive" } }],
+    });
+  }
+
+  const whereConditions: Prisma.ClassWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+
+  const classes = await prisma.class.findMany({
+    where: whereConditions,
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      createdAt: true,
+      chat: {
+        select: {
+          _count: {
+            select: {
+              participants: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+    skip,
+    take,
+  });
+
+  const total = await prisma.class.count({
+    where: whereConditions,
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+  return { meta, classes };
 };
 
 const getSingleClass = async (id: string) => {
@@ -255,6 +309,7 @@ const toggleClassInvitationAccess = async (classId: string) => {
 
 export const classServices = {
   createClass,
+  getAllClasses,
   getSingleClass,
   addClassMember,
   changeClassImage,

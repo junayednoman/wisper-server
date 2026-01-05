@@ -1,6 +1,7 @@
 import { TFile } from "../../interface/file.interface";
 import { TRequest } from "../../interface/global.interface";
 import handleAsyncRequest from "../../utils/handleAsyncRequest";
+import pick from "../../utils/pick";
 import { sendResponse } from "../../utils/sendResponse";
 import { groupServices } from "./group.service";
 
@@ -13,6 +14,15 @@ const createGroup = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const getAllGroups = handleAsyncRequest(async (req: TRequest, res) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await groupServices.getAllGroups(options, req.query);
+  sendResponse(res, {
+    message: "Groups retrieved successfully!",
+    data: result,
+  });
+});
+
 const getSingleGroup = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await groupServices.getSingleGroup(req.params.id as string);
   sendResponse(res, {
@@ -22,7 +32,12 @@ const getSingleGroup = handleAsyncRequest(async (req: TRequest, res) => {
 });
 
 const getGroupMembers = handleAsyncRequest(async (req: TRequest, res) => {
-  const result = await groupServices.getGroupMembers(req.params.id as string);
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await groupServices.getGroupMembers(
+    req.params.id as string,
+    options,
+    req.query
+  );
   sendResponse(res, {
     message: "Group members retrieved successfully!",
     data: result,
@@ -87,6 +102,7 @@ const toggleGroupInvitationAccess = handleAsyncRequest(
 
 export const groupController = {
   createGroup,
+  getAllGroups,
   getSingleGroup,
   addGroupMember,
   changeGroupImage,
