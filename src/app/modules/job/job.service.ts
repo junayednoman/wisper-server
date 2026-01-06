@@ -109,7 +109,7 @@ const getAllJobs = async (
   return { meta, jobs };
 };
 
-const getSingleJob = async (id: string) => {
+const getSingleJob = async (id: string, userId: string) => {
   const job = await prisma.job.findFirstOrThrow({
     where: {
       id,
@@ -135,6 +135,7 @@ const getSingleJob = async (id: string) => {
   const favoriteJob = await prisma.favoriteJob.findFirst({
     where: {
       jobId: id,
+      authId: userId,
     },
   });
   return { ...job, isFavorite: favoriteJob ? true : false };

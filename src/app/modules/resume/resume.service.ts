@@ -22,7 +22,7 @@ const addResume = async (userId: string, file: TFile) => {
   return result;
 };
 
-const getMyResumes = async (userId: string) => {
+const geUserResumes = async (userId: string) => {
   const result = await prisma.resume.findMany({
     where: {
       authorId: userId,
@@ -96,7 +96,7 @@ const deleteResume = async (resumeId: string, userId: string) => {
 
 export const resumeService = {
   addResume,
-  getMyResumes,
+  geUserResumes,
   changeDefaultResume,
   deleteResume,
 };

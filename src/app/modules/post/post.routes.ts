@@ -50,7 +50,7 @@ router.patch(
 );
 router.patch(
   "/status/:id",
-  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  authorize(UserRole.PERSON, UserRole.BUSINESS, UserRole.ADMIN),
   postController.changePostStatus
 );
 

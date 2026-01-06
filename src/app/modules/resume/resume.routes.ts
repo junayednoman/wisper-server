@@ -15,8 +15,8 @@ router.post(
 
 router.get(
   "/:authId",
-  authorize(UserRole.PERSON),
-  resumeController.getMyResumes
+  authorize(UserRole.PERSON, UserRole.ADMIN),
+  resumeController.geUserResumes
 );
 router.patch(
   "/:id",

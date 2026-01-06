@@ -35,17 +35,34 @@ const getAllComplaints = async (
   const { searchTerm, type } = query;
 
   const andConditions: Prisma.ComplaintWhereInput[] = [];
+
+  andConditions.push({
+    status: ComplaintStatus.PENDING,
+  });
+
   if (searchTerm) {
     andConditions.push({
       OR: [
         {
           account: {
-            person: {
-              name: {
-                contains: searchTerm,
-                mode: "insensitive",
+            OR: [
+              {
+                person: {
+                  name: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                  },
+                },
               },
-            },
+              {
+                business: {
+                  name: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            ],
           },
         },
         {
@@ -63,6 +80,7 @@ const getAllComplaints = async (
       ],
     });
   }
+
   if (type) {
     andConditions.push({
       type,
@@ -84,6 +102,7 @@ const getAllComplaints = async (
         select: {
           id: true,
           role: true,
+          status: true,
           person: {
             select: {
               id: true,
@@ -112,6 +131,8 @@ const getAllComplaints = async (
           author: {
             select: {
               id: true,
+              status: true,
+              role: true,
               person: {
                 select: {
                   id: true,

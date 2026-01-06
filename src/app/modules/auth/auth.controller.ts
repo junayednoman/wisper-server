@@ -28,6 +28,14 @@ const login = handleAsyncRequest(async (req: Request, res: Response) => {
   });
 });
 
+const getSingle = handleAsyncRequest(async (req: TRequest, res: Response) => {
+  const result = await authServices.getSingle(req.params.id as string);
+  sendResponse(res, {
+    message: "User retrieved successfully!",
+    data: result,
+  });
+});
+
 const getAll = handleAsyncRequest(async (req: TRequest, res: Response) => {
   const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
   const result = await authServices.getAll(options, req.query);
@@ -106,6 +114,7 @@ const logout = handleAsyncRequest(async (_req: Request, res: Response) => {
 
 export const authController = {
   login,
+  getSingle,
   getAll,
   resetPassword,
   changePassword,

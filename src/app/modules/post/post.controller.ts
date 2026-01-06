@@ -95,6 +95,7 @@ const updateCommentAccess = handleAsyncRequest(async (req: TRequest, res) => {
 const changePostStatus = handleAsyncRequest(async (req: TRequest, res) => {
   const { result, message } = await PostService.changePostStatus(
     req.user!.id,
+    req.user!.role,
     req.params.id as string,
     req.body.status
   );

@@ -1,4 +1,4 @@
-import { ConnectionStatus, UserRole, UserStatus } from "@prisma/client";
+import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import prisma from "../../utils/prisma";
 import { TPersonSignUp, TUpdatePersonProfile } from "./person.validation";
 import ApiError from "../../middlewares/classes/ApiError";
@@ -110,7 +110,7 @@ const getSingle = async (id: string, currentAuthId: string) => {
     },
   });
 
-  const isConnected = await prisma.connection.findFirst({
+  const connection = await prisma.connection.findFirst({
     where: {
       OR: [
         {
@@ -122,11 +122,13 @@ const getSingle = async (id: string, currentAuthId: string) => {
           receiverId: currentAuthId,
         },
       ],
-      status: ConnectionStatus.ACCEPTED,
     },
   });
 
-  return { auth: result, isConnected: !!isConnected };
+  return {
+    auth: result,
+    connection,
+  };
 };
 
 const getMyProfile = async (id: string) => {
@@ -199,13 +201,36 @@ const updateProfileImage = async (email: string, file: TFile) => {
 
 const getUserRoles = async (
   options: TPaginationOptions,
+  query: Record<string, any>,
   currentAuthId: string
 ) => {
+  const andConditions: Prisma.AuthWhereInput[] = [];
+
+  andConditions.push({
+    role: UserRole.PERSON,
+  });
+
+  if (query.searchTerm) {
+    andConditions.push({
+      OR: [
+        {
+          person: {
+            OR: [
+              { name: { contains: query.searchTerm, mode: "insensitive" } },
+              { title: { contains: query.searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+      ],
+    });
+  }
+
+  const whereConditions: Prisma.AuthWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
   const roles = await prisma.auth.findMany({
-    where: {
-      role: UserRole.PERSON,
-    },
+    where: whereConditions,
     select: {
       id: true,
       person: {

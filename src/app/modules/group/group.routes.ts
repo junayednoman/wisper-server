@@ -29,7 +29,7 @@ router.get(
 
 router.get(
   "/members/:id",
-  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  authorize(UserRole.PERSON, UserRole.BUSINESS, UserRole.ADMIN),
   groupController.getGroupMembers
 );
 

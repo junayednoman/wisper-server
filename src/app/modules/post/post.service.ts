@@ -3,6 +3,7 @@ import {
   ConnectionStatus,
   PostStatus,
   Prisma,
+  UserRole,
 } from "@prisma/client";
 import { TFile } from "../../interface/file.interface";
 import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
@@ -35,6 +36,11 @@ const create = async (id: string, payload: TCreatePost, files?: TFile[]) => {
 
 const getFeedPosts = async (userId: string, options: TPaginationOptions) => {
   const andConditions: Prisma.PostWhereInput[] = [];
+
+  andConditions.push({
+    status: PostStatus.ACTIVE,
+  });
+
   const currentAuth = await prisma.auth.findUnique({
     where: {
       id: userId,
@@ -215,6 +221,10 @@ const allPosts = async (
 ) => {
   const andConditions: Prisma.PostWhereInput[] = [];
 
+  andConditions.push({
+    status: PostStatus.ACTIVE,
+  });
+
   let postStatus = PostStatus.ACTIVE;
   if (query?.status) postStatus = query.status;
   andConditions.push({
@@ -356,6 +366,7 @@ const updateCommentAccess = async (
 
 const changePostStatus = async (
   userId: string,
+  userRole: UserRole,
   id: string,
   status: PostStatus
 ) => {
@@ -366,7 +377,8 @@ const changePostStatus = async (
     },
   });
 
-  if (post.authorId !== userId) throw new ApiError(401, "Unauthorized");
+  if (userRole !== UserRole.ADMIN && post.authorId !== userId)
+    throw new ApiError(401, "Unauthorized");
   const result = await prisma.post.update({
     where: {
       id,

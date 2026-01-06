@@ -23,7 +23,10 @@ const getAllJobs = handleAsyncRequest(async (req: TRequest, res) => {
 });
 
 const getSingleJob = handleAsyncRequest(async (req: TRequest, res) => {
-  const result = await jobServices.getSingleJob(req.params.id as string);
+  const result = await jobServices.getSingleJob(
+    req.params.id as string,
+    req.user!.id
+  );
   sendResponse(res, {
     message: "Job retrieved successfully!",
     data: result,

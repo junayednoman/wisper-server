@@ -21,6 +21,7 @@ router.post(
   handleZodValidation(personSignupZod),
   personController.signUp
 );
+router.get("/:id", authorize(UserRole.ADMIN), authController.getSingle);
 router.get("/", authorize(UserRole.ADMIN), authController.getAll);
 router.post(
   "/business/signup",

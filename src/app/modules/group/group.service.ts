@@ -178,12 +178,14 @@ const getGroupMembers = async (
           person: {
             select: {
               name: true,
+              email: true,
               image: true,
             },
           },
           business: {
             select: {
               name: true,
+              email: true,
               image: true,
             },
           },
@@ -199,12 +201,56 @@ const getGroupMembers = async (
     where: whereConditions,
   });
 
+  let community = null;
+
+  community = await prisma.group.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      chat: {
+        select: {
+          _count: {
+            select: {
+              participants: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!community) {
+    community = await prisma.class.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        chat: {
+          select: {
+            _count: {
+              select: {
+                participants: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   const meta = {
     page,
     limit: take,
     total,
   };
-  return { meta, members };
+  return { meta, community, members };
 };
 
 const addGroupMember = async (

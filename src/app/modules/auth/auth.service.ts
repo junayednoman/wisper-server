@@ -102,6 +102,7 @@ const getAll = async (
         role: UserRole.BUSINESS,
       },
     ],
+    status: { in: [UserStatus.ACTIVE, UserStatus.BLOCKED] },
   });
 
   if (query.searchTerm) {
@@ -144,6 +145,7 @@ const getAll = async (
     select: {
       id: true,
       role: true,
+      status: true,
       createdAt: true,
       person: {
         select: {
@@ -184,6 +186,39 @@ const getAll = async (
     total,
   };
   return { meta, auths };
+};
+
+const getSingle = async (id: string) => {
+  const auth = await prisma.auth.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      person: {
+        select: {
+          name: true,
+          image: true,
+          title: true,
+          address: true,
+        },
+      },
+      business: {
+        select: {
+          name: true,
+          image: true,
+          industry: true,
+          address: true,
+        },
+      },
+    },
+  });
+
+  return auth;
 };
 
 const resetPassword = async (payload: TResetPasswordInput) => {
@@ -345,6 +380,7 @@ const toggleNotificationPermission = async (id: string) => {
 
 export const authServices = {
   login,
+  getSingle,
   getAll,
   refreshToken,
   resetPassword,

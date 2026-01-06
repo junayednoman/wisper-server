@@ -31,6 +31,7 @@ const getRecommendationsByPersonId = async (authId: string) => {
       id: true,
       rating: true,
       text: true,
+      createdAt: true,
       giver: {
         select: {
           id: true,
@@ -38,6 +39,7 @@ const getRecommendationsByPersonId = async (authId: string) => {
             select: {
               id: true,
               name: true,
+              title: true,
               image: true,
             },
           },
@@ -45,6 +47,7 @@ const getRecommendationsByPersonId = async (authId: string) => {
             select: {
               id: true,
               name: true,
+              industry: true,
               image: true,
             },
           },

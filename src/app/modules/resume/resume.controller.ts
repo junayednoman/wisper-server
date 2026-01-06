@@ -13,8 +13,8 @@ const addResume = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-const getMyResumes = handleAsyncRequest(async (req: TRequest, res) => {
-  const result = await resumeService.getMyResumes(req.params.authId as string);
+const geUserResumes = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await resumeService.geUserResumes(req.params.authId as string);
   sendResponse(res, {
     message: "Resumes retrieved successfully!",
     data: result,
@@ -45,7 +45,7 @@ const deleteResume = handleAsyncRequest(async (req: TRequest, res) => {
 
 export const resumeController = {
   addResume,
-  getMyResumes,
+  geUserResumes,
   changeDefaultResume,
   deleteResume,
 };

@@ -1,4 +1,4 @@
-import { ConnectionStatus, UserRole, UserStatus } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import prisma from "../../utils/prisma";
 import { TBusinessSignup, TUpdateBusinessProfile } from "./business.validation";
 import ApiError from "../../middlewares/classes/ApiError";
@@ -106,7 +106,7 @@ const getSingle = async (id: string, currentAuthId: string) => {
     },
   });
 
-  const isConnected = await prisma.connection.findFirst({
+  const connection = await prisma.connection.findFirst({
     where: {
       OR: [
         {
@@ -118,11 +118,13 @@ const getSingle = async (id: string, currentAuthId: string) => {
           receiverId: currentAuthId,
         },
       ],
-      status: ConnectionStatus.ACCEPTED,
     },
   });
 
-  return { auth: result, isConnected: !!isConnected };
+  return {
+    auth: result,
+    connection,
+  };
 };
 
 const getMyProfile = async (id: string) => {

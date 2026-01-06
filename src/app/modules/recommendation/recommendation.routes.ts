@@ -13,7 +13,7 @@ router.post(
 
 router.get(
   "/:personId",
-  authorize(UserRole.PERSON),
+  authorize(UserRole.PERSON, UserRole.ADMIN),
   recommendationController.getRecommendationsByPersonId
 );
 
