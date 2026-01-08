@@ -48,7 +48,16 @@ const updatePackage = async (
 };
 
 const deletePackage = async (packageId: string) => {
-  throw new ApiError(400, "Boost package is associated with post boosts!");
+  const associatedBoosts = await prisma.boost.findFirst({
+    where: {
+      packageId,
+    },
+  });
+
+  if (associatedBoosts) {
+    throw new ApiError(400, "Boost package is associated with post boosts!");
+  }
+
   const result = await prisma.boostPackage.delete({
     where: {
       id: packageId,

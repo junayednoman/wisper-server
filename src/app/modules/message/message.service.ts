@@ -1,7 +1,7 @@
 import { ChatType } from "@prisma/client";
 import ApiError from "../../middlewares/classes/ApiError";
 import prisma from "../../utils/prisma";
-import { TSeenMessages, TSendMessage } from "./message.validation";
+import { TSendMessage } from "./message.validation";
 import {
   calculatePagination,
   TPaginationOptions,
@@ -174,32 +174,35 @@ const updateMessage = async (
   return result;
 };
 
-const seenMessages = async (authId: string, payload: TSeenMessages) => {
-  const message = await prisma.message.findUniqueOrThrow({
-    where: { id: payload.messageIds[0] },
+const seenMessages = async (authId: string, chatId: string) => {
+  const chat = await prisma.chat.findUniqueOrThrow({
+    where: { id: chatId },
     select: {
-      chat: {
-        select: {
-          participants: {
-            select: {
-              id: true,
-              authId: true,
-            },
+      participants: true,
+    },
+  });
+
+  const myUnseenMessages = await prisma.message.findMany({
+    where: {
+      chatId,
+      messagesSeen: {
+        none: {
+          participant: {
+            authId,
           },
         },
       },
     },
+    select: { id: true },
   });
 
-  const participants = message.chat.participants.filter(
-    p => p.authId === authId
-  );
+  const participants = chat.participants.filter(p => p.authId === authId);
 
   const myParticipantId = participants.find(p => p.authId === authId)
     ?.id as string;
 
-  const seenPayloads = payload.messageIds.map(id => ({
-    messageId: id,
+  const seenPayloads = myUnseenMessages.map(m => ({
+    messageId: m.id,
     participantId: myParticipantId,
   }));
 

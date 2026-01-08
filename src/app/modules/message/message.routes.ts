@@ -3,7 +3,7 @@ import { messageController } from "./message.controller";
 import authorize from "../../middlewares/authorize";
 import { UserRole } from "@prisma/client";
 import handleZodValidation from "../../middlewares/handleZodValidation";
-import { seenMessagesZod, sendMessageZod } from "./message.validation";
+import { sendMessageZod } from "./message.validation";
 
 const router = Router();
 
@@ -21,9 +21,8 @@ router.get(
 );
 
 router.patch(
-  "/seen",
+  "/seen/:chatId",
   authorize(UserRole.BUSINESS, UserRole.PERSON),
-  handleZodValidation(seenMessagesZod),
   messageController.seenMessages
 );
 

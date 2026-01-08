@@ -26,6 +26,7 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 app.use("/api/v1", router);
+app.use("/.well-known", express.static(".well-known"));
 
 app.use(globalErrorHandler);
 app.use(routeNotFoundHandler);

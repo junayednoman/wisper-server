@@ -11,6 +11,7 @@ import {
   calculatePagination,
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
+import onlineUsers from "../../socket/utils/onlineUsers";
 
 const createChat = async (authId: string, payload: TCreateChatZod) => {
   if (authId == payload.participantId)
@@ -167,7 +168,15 @@ const getMyChats = async (
 
   const total = await prisma.chat.count({ where: whereConditions });
   const meta = { page, limit: take, total };
-  return { meta, chats };
+
+  const refinedChats = chats.map(chat => ({
+    ...chat,
+    participants: chat.participants.map(p => ({
+      ...p,
+      isOnline: Boolean(onlineUsers[p.auth.id]),
+    })),
+  }));
+  return { meta, chats: refinedChats };
 };
 
 const getChatLinks = async (authId: string, chatId: string) => {

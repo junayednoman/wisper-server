@@ -21,7 +21,8 @@ router.post(
   handleZodValidation(personSignupZod),
   personController.signUp
 );
-router.get("/:id", authorize(UserRole.ADMIN), authController.getSingle);
+// router.get("/:id", authorize(UserRole.ADMIN), authController.getSingle);
+router.get("/refresh-token", authController.refreshToken);
 router.get("/", authorize(UserRole.ADMIN), authController.getAll);
 router.post(
   "/business/signup",
@@ -54,8 +55,6 @@ router.patch(
   handleZodValidation(changeAccountStatusZod),
   authController.changeAccountStatus
 );
-
-router.get("/refresh-token", authController.refreshToken);
 
 router.patch(
   "/notification-permission",

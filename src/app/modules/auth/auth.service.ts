@@ -332,6 +332,7 @@ const refreshToken = async (token: string) => {
   if (!token) throw new ApiError(401, "Unauthorized!");
   const decodedUser = jwt.verify(token, config.jwt.refreshSecret as Secret);
   if (!decodedUser) throw new ApiError(401, "Unauthorized!");
+
   const user = await prisma.auth.findUniqueOrThrow({
     where: {
       id: (decodedUser as TAuthUser).id,

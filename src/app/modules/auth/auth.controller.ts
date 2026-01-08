@@ -83,7 +83,7 @@ const changeAccountStatus = handleAsyncRequest(
 
 const refreshToken = handleAsyncRequest(
   async (req: TRequest, res: Response) => {
-    const token = req.cookies.refreshToken;
+    const token = req.cookies.wisperRefreshToken;
     const result = await authServices.refreshToken(token);
     sendResponse(res, {
       message: "Token refreshed successfully!",

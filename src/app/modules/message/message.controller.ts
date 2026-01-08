@@ -40,7 +40,10 @@ const updateMessage = handleAsyncRequest(async (req: TRequest, res) => {
 });
 
 const seenMessages = handleAsyncRequest(async (req: TRequest, res) => {
-  const result = await messageService.seenMessages(req.user!.id, req.body);
+  const result = await messageService.seenMessages(
+    req.user!.id,
+    req.params.chatId as string
+  );
   sendResponse(res, {
     message: "Messages seen successfully!",
     data: result,

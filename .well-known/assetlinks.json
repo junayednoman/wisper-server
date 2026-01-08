@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.wisper",
+      "sha256_cert_fingerprints": ["68:F8:FF:1D:39:69:8F:E9:D0:62:BE:BA:58:B5:23:F0:37:03:DF:F7:20:FB:66:8B:37:7A:A3:4A:B8:CA:1A:7F"]
+    }
+  }
+]
