@@ -27,6 +27,19 @@ const createChat = async (authId: string, payload: TCreateChatZod) => {
   });
 
   if (existingChat) {
+    const existingChatDeletion = await prisma.chatDeletion.findFirst({
+      where: {
+        chatId: existingChat.id,
+        authId: authId,
+      },
+    });
+    if (existingChatDeletion) {
+      await prisma.chatDeletion.delete({
+        where: {
+          id: existingChatDeletion.id,
+        },
+      });
+    }
     return existingChat;
   }
 
