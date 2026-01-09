@@ -11,6 +11,16 @@ export const loginZodSchema = z.object({
 
 export type TLoginInput = z.infer<typeof loginZodSchema>;
 
+export const googleLoginSchema = z.object({
+  email: emailZod,
+  name: z.string(),
+  image: z.string(),
+  fcmToken: z.string(),
+  role: z.enum(["PERSON", "BUSINESS"]),
+});
+
+export type TGoogleLoginInput = z.infer<typeof googleLoginSchema>;
+
 export const resetPasswordZod = z.object({
   email: emailZod,
   password: passwordZod,

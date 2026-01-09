@@ -28,6 +28,14 @@ const login = handleAsyncRequest(async (req: Request, res: Response) => {
   });
 });
 
+const googleLogin = handleAsyncRequest(async (req: Request, res: Response) => {
+  const result = await authServices.googleLogin(req.body);
+  sendResponse(res, {
+    message: "Logged in successfully!",
+    data: result,
+  });
+});
+
 const getSingle = handleAsyncRequest(async (req: TRequest, res: Response) => {
   const result = await authServices.getSingle(req.params.id as string);
   sendResponse(res, {
@@ -114,6 +122,7 @@ const logout = handleAsyncRequest(async (_req: Request, res: Response) => {
 
 export const authController = {
   login,
+  googleLogin,
   getSingle,
   getAll,
   resetPassword,

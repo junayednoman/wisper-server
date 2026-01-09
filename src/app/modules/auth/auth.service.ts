@@ -4,6 +4,7 @@ import prisma from "../../utils/prisma";
 import { sendEmail } from "../../utils/sendEmail";
 import {
   TChangePasswordInput,
+  TGoogleLoginInput,
   TLoginInput,
   TResetPasswordInput,
 } from "./auth.validation";
@@ -24,9 +25,6 @@ const login = async (payload: TLoginInput) => {
       NOT: [
         {
           status: UserStatus.DELETED,
-        },
-        {
-          status: UserStatus.PENDING,
         },
       ],
     },
@@ -84,6 +82,88 @@ const login = async (payload: TLoginInput) => {
   return {
     accessToken,
     refreshToken,
+  };
+};
+
+const googleLogin = async (payload: TGoogleLoginInput) => {
+  const auth = await prisma.auth.findUnique({
+    where: {
+      email: payload.email,
+    },
+  });
+
+  if (auth?.status === UserStatus.BLOCKED)
+    throw new ApiError(400, "Your account is blocked!");
+
+  if (auth?.status === UserStatus.DELETED)
+    throw new ApiError(400, "Your account is deleted!");
+
+  if (auth?.loginProvider === LoginProvider.EMAIL)
+    throw new ApiError(400, "Already registered with email!");
+
+  // prepare tokens
+  const jwtPayload = {
+    email: payload.email,
+    role: payload.role,
+    id: auth?.id,
+  };
+
+  if (auth) {
+    await prisma.auth.update({
+      where: {
+        email: payload.email,
+      },
+      data: {
+        fcmToken: payload.fcmToken,
+      },
+    });
+  } else {
+    const authData = {
+      email: payload.email,
+      password: "",
+      loginProvider: LoginProvider.GOOGLE,
+      fcmToken: payload.fcmToken,
+      role: payload.role,
+      status: UserStatus.ACTIVE,
+    };
+
+    const userData = {
+      name: payload.name,
+      email: payload.email,
+      image: payload.image,
+    } as any;
+
+    await prisma.$transaction(async tn => {
+      const auth = await tn.auth.create({
+        data: authData,
+      });
+
+      jwtPayload.id = auth.id;
+
+      if (payload.role === UserRole.PERSON) {
+        userData.industry = "N/A";
+        await tn.person.create({
+          data: userData,
+        });
+      } else {
+        userData.industry = "N/A";
+        await tn.business.create({
+          data: userData,
+        });
+      }
+    });
+  }
+
+  const accessToken = jsonwebtoken.sign(
+    jwtPayload,
+    config.jwt.accessSecret as Secret,
+    {
+      expiresIn: config.jwt.refreshExpiration as any,
+    }
+  );
+
+  return {
+    accessToken,
   };
 };
 
@@ -381,6 +461,7 @@ const toggleNotificationPermission = async (id: string) => {
 
 export const authServices = {
   login,
+  googleLogin,
   getSingle,
   getAll,
   refreshToken,

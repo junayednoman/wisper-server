@@ -3,6 +3,7 @@ import handleZodValidation from "../../middlewares/handleZodValidation";
 import {
   changeAccountStatusZod,
   changePasswordZod,
+  googleLoginSchema,
   loginZodSchema,
   resetPasswordZod,
 } from "./auth.validation";
@@ -21,7 +22,7 @@ router.post(
   handleZodValidation(personSignupZod),
   personController.signUp
 );
-// router.get("/:id", authorize(UserRole.ADMIN), authController.getSingle);
+router.get("/:id", authorize(UserRole.ADMIN), authController.getSingle);
 router.get("/refresh-token", authController.refreshToken);
 router.get("/", authorize(UserRole.ADMIN), authController.getAll);
 router.post(
@@ -34,6 +35,12 @@ router.post(
   "/login",
   handleZodValidation(loginZodSchema),
   authController.login
+);
+
+router.post(
+  "/google-login",
+  handleZodValidation(googleLoginSchema),
+  authController.googleLogin
 );
 
 router.post(
