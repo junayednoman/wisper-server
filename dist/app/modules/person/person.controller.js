@@ -17,7 +17,7 @@ const signUp = (0, handleAsyncRequest_1.default)(async (req, res) => {
     });
 });
 const getSingle = (0, handleAsyncRequest_1.default)(async (req, res) => {
-    const result = await person_service_1.personServices.getSingle(req.params.id);
+    const result = await person_service_1.personServices.getSingle(req.params.id, req.user.id);
     (0, sendResponse_1.sendResponse)(res, {
         message: "User retrieved successfully!",
         data: result,
@@ -46,7 +46,7 @@ const updateProfileImage = (0, handleAsyncRequest_1.default)(async (req, res) =>
 });
 const getUserRoles = (0, handleAsyncRequest_1.default)(async (req, res) => {
     const options = (0, pick_1.default)(req.query, ["page", "limit", "sortBy", "orderBy"]);
-    const result = await person_service_1.personServices.getUserRoles(options);
+    const result = await person_service_1.personServices.getUserRoles(options, req.query, req.user.id);
     (0, sendResponse_1.sendResponse)(res, {
         message: "Roles retrieved successfully!",
         data: result,

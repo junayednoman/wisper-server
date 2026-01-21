@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changeAccountStatusZod = exports.changePasswordZod = exports.resetPasswordZod = exports.loginZodSchema = void 0;
+exports.changeAccountStatusZod = exports.changePasswordZod = exports.resetPasswordZod = exports.googleLoginSchema = exports.loginZodSchema = void 0;
 const zod_1 = __importDefault(require("zod"));
 const global_validation_1 = require("../../validation/global.validation");
 const client_1 = require("@prisma/client");
@@ -12,6 +12,13 @@ exports.loginZodSchema = zod_1.default.object({
     password: global_validation_1.passwordZod,
     fcmToken: zod_1.default.string().optional(),
     isMobileApp: zod_1.default.boolean().default(false),
+});
+exports.googleLoginSchema = zod_1.default.object({
+    email: global_validation_1.emailZod,
+    name: zod_1.default.string(),
+    image: zod_1.default.string(),
+    fcmToken: zod_1.default.string(),
+    role: zod_1.default.enum(["PERSON", "BUSINESS"]),
 });
 exports.resetPasswordZod = zod_1.default.object({
     email: global_validation_1.emailZod,

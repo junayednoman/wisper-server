@@ -6,6 +6,17 @@ export declare const loginZodSchema: z.ZodObject<{
     isMobileApp: z.ZodDefault<z.ZodBoolean>;
 }, z.core.$strip>;
 export type TLoginInput = z.infer<typeof loginZodSchema>;
+export declare const googleLoginSchema: z.ZodObject<{
+    email: z.ZodString;
+    name: z.ZodString;
+    image: z.ZodString;
+    fcmToken: z.ZodString;
+    role: z.ZodEnum<{
+        PERSON: "PERSON";
+        BUSINESS: "BUSINESS";
+    }>;
+}, z.core.$strip>;
+export type TGoogleLoginInput = z.infer<typeof googleLoginSchema>;
 export declare const resetPasswordZod: z.ZodObject<{
     email: z.ZodString;
     password: z.ZodString;

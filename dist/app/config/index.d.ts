@@ -1,7 +1,6 @@
 declare const _default: {
     env: string | undefined;
     port: string | undefined;
-    socket_port: string | undefined;
     email: {
         emailSendingApi: string | undefined;
     };

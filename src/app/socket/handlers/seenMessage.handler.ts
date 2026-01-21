@@ -8,7 +8,7 @@ export const seenMessage = eventHandler<TSeenMessage>(
   async (socket: TSocket, data) => {
     const authId = socket.auth.id;
 
-    await messageService.seenMessages(authId, data);
+    await messageService.seenMessages(authId, data.chatId);
 
     const newMessages = await prisma.message.findMany({
       where: {

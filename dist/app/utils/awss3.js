@@ -43,7 +43,7 @@ const config_1 = __importDefault(require("../config"));
 const multer_1 = __importStar(require("multer"));
 const ApiError_1 = __importDefault(require("../middlewares/classes/ApiError"));
 exports.s3Client = new client_s3_2.S3Client({
-    endpoint: config_1.default.aws.endpoint,
+    // endpoint: config.aws.endpoint as string,
     region: `${config_1.default.aws.region}`,
     credentials: {
         accessKeyId: `${config_1.default.aws.accessKeyId}`,
@@ -55,20 +55,19 @@ exports.upload = (0, multer_1.default)({
 });
 //upload a single file
 const uploadToS3 = async (file) => {
-    const fileName = `images/noman/${Date.now()}-${file.originalname}`;
+    const fileName = `wisper/${Date.now()}-${file.originalname}`;
     const command = new client_s3_1.PutObjectCommand({
         Bucket: config_1.default.aws.bucket,
         Key: fileName,
         Body: file.buffer,
         ContentType: file.mimetype,
-        ACL: client_s3_1.ObjectCannedACL.public_read, //access public read
     });
     try {
         const key = await exports.s3Client.send(command);
         if (!key) {
             throw new ApiError_1.default(400, "File Upload failed");
         }
-        const url = `${config_1.default?.aws?.s3BaseUrl}/${fileName}`;
+        const url = `${config_1.default?.aws?.s3BaseUrl}${fileName}`;
         if (!url)
             throw new ApiError_1.default(400, "File Upload failed");
         return url;
@@ -81,7 +80,7 @@ const uploadToS3 = async (file) => {
 exports.uploadToS3 = uploadToS3;
 // // delete file from s3 bucket
 const deleteFromS3 = async (url) => {
-    const key = decodeURIComponent(url.split(".digitaloceanspaces.com/")[1]);
+    const key = decodeURIComponent(url.split(config_1.default.aws.s3BaseUrl)[1]);
     try {
         const command = new client_s3_1.DeleteObjectCommand({
             Bucket: config_1.default.aws.bucket,

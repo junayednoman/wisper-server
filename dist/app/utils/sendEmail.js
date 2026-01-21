@@ -16,7 +16,7 @@ const sendEmail = async (to, subject, templatePath, replacements) => {
         // Replace all placeholders
         let emailContent = data;
         for (const [key, value] of Object.entries(replacements)) {
-            emailContent = emailContent.replace(`{{${key}}}`, value.toString());
+            emailContent = emailContent.replace(`{{${key}}}`, value?.toString());
         }
         emailContent = emailContent.replace("{{year}}", year);
         const emailData = {

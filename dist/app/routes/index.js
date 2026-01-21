@@ -25,6 +25,7 @@ const boostPackage_routes_1 = require("../modules/boostPackage/boostPackage.rout
 const legal_routes_1 = require("../modules/legal/legal.routes");
 const dashboard_routes_1 = require("../modules/dashboard/dashboard.routes");
 const boost_routes_1 = require("../modules/boost/boost.routes");
+const notification_routes_1 = require("../modules/notification/notification.routes");
 const router = (0, express_1.Router)();
 const routes = [
     { path: "/auths", route: auth_routes_1.authRoutes },
@@ -49,6 +50,7 @@ const routes = [
     { path: "/legal", route: legal_routes_1.legalRoutes },
     { path: "/dashboard", route: dashboard_routes_1.dashboardRoutes },
     { path: "/boosts", route: boost_routes_1.boostRoutes },
+    { path: "/notifications", route: notification_routes_1.notificationRoutes },
     { path: "/admins", route: admin_routes_1.adminRoutes },
     { path: "/upload-files", route: uploadFile_routes_1.fileRoutes },
 ];

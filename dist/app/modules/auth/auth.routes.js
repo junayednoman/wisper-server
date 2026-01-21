@@ -16,13 +16,16 @@ const business_controller_1 = require("../business/business.controller");
 const business_validation_1 = require("../business/business.validation");
 const router = (0, express_1.Router)();
 router.post("/person/signup", (0, handleZodValidation_1.default)(person_validation_1.personSignupZod), person_controller_1.personController.signUp);
+router.get("/:id", (0, authorize_1.default)(client_1.UserRole.ADMIN), auth_controller_1.authController.getSingle);
+router.get("/refresh-token", auth_controller_1.authController.refreshToken);
 router.get("/", (0, authorize_1.default)(client_1.UserRole.ADMIN), auth_controller_1.authController.getAll);
 router.post("/business/signup", (0, handleZodValidation_1.default)(business_validation_1.businessSignupZod), business_controller_1.businessController.signUp);
 router.post("/login", (0, handleZodValidation_1.default)(auth_validation_1.loginZodSchema), auth_controller_1.authController.login);
+router.post("/google-login", (0, handleZodValidation_1.default)(auth_validation_1.googleLoginSchema), auth_controller_1.authController.googleLogin);
 router.post("/reset-password", (0, handleZodValidation_1.default)(auth_validation_1.resetPasswordZod), auth_controller_1.authController.resetPassword);
 router.post("/change-password", (0, authorize_1.default)(client_1.UserRole.ADMIN, client_1.UserRole.PERSON, client_1.UserRole.BUSINESS), (0, handleZodValidation_1.default)(auth_validation_1.changePasswordZod), auth_controller_1.authController.changePassword);
 router.patch("/change-account-status/:userId", (0, authorize_1.default)(client_1.UserRole.ADMIN), (0, handleZodValidation_1.default)(auth_validation_1.changeAccountStatusZod), auth_controller_1.authController.changeAccountStatus);
-router.get("/refresh-token", auth_controller_1.authController.refreshToken);
 router.patch("/notification-permission", (0, authorize_1.default)(client_1.UserRole.PERSON), auth_controller_1.authController.toggleNotificationPermission);
+router.post("/logout", (0, authorize_1.default)(client_1.UserRole.ADMIN), auth_controller_1.authController.logout);
 exports.authRoutes = router;
 //# sourceMappingURL=auth.routes.js.map

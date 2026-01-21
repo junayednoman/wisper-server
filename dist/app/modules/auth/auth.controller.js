@@ -17,19 +17,33 @@ const login = (0, handleAsyncRequest_1.default)(async (req, res) => {
     const cookieOptions = {
         httpOnly: true,
         secure: config_1.default.env === "production", // Use secure in production
-        maxAge: 60 * day,
+        maxAge: 45 * day,
     };
     if (config_1.default.env === "production")
         cookieOptions.sameSite = "none";
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.cookie("wisperRefreshToken", refreshToken, cookieOptions);
     (0, sendResponse_1.sendResponse)(res, {
         message: "Logged in successfully!",
         data: { accessToken },
     });
 });
+const googleLogin = (0, handleAsyncRequest_1.default)(async (req, res) => {
+    const result = await auth_service_1.authServices.googleLogin(req.body);
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "Logged in successfully!",
+        data: result,
+    });
+});
+const getSingle = (0, handleAsyncRequest_1.default)(async (req, res) => {
+    const result = await auth_service_1.authServices.getSingle(req.params.id);
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "User retrieved successfully!",
+        data: result,
+    });
+});
 const getAll = (0, handleAsyncRequest_1.default)(async (req, res) => {
     const options = (0, pick_1.default)(req.query, ["page", "limit", "sortBy", "orderBy"]);
-    const result = await auth_service_1.authServices.getAll(options);
+    const result = await auth_service_1.authServices.getAll(options, req.query);
     (0, sendResponse_1.sendResponse)(res, {
         message: "Users retrieved successfully!",
         data: result,
@@ -57,7 +71,7 @@ const changeAccountStatus = (0, handleAsyncRequest_1.default)(async (req, res) =
     });
 });
 const refreshToken = (0, handleAsyncRequest_1.default)(async (req, res) => {
-    const token = req.cookies.refreshToken;
+    const token = req.cookies.wisperRefreshToken;
     const result = await auth_service_1.authServices.refreshToken(token);
     (0, sendResponse_1.sendResponse)(res, {
         message: "Token refreshed successfully!",
@@ -71,13 +85,23 @@ const toggleNotificationPermission = (0, handleAsyncRequest_1.default)(async (re
         data: result,
     });
 });
+const logout = (0, handleAsyncRequest_1.default)(async (_req, res) => {
+    res.clearCookie("wisperRefreshToken", { httpOnly: true });
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "Logged out successfully!",
+        data: null,
+    });
+});
 exports.authController = {
     login,
+    googleLogin,
+    getSingle,
     getAll,
     resetPassword,
     changePassword,
     changeAccountStatus,
     refreshToken,
     toggleNotificationPermission,
+    logout,
 };
 //# sourceMappingURL=auth.controller.js.map

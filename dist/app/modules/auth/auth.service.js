@@ -21,9 +21,6 @@ const login = async (payload) => {
                 {
                     status: client_1.UserStatus.DELETED,
                 },
-                {
-                    status: client_1.UserStatus.PENDING,
-                },
             ],
         },
     });
@@ -66,7 +63,75 @@ const login = async (payload) => {
         refreshToken,
     };
 };
-const getAll = async (options) => {
+const googleLogin = async (payload) => {
+    const auth = await prisma_1.default.auth.findUnique({
+        where: {
+            email: payload.email,
+        },
+    });
+    if (auth?.status === client_1.UserStatus.BLOCKED)
+        throw new ApiError_1.default(400, "Your account is blocked!");
+    if (auth?.status === client_1.UserStatus.DELETED)
+        throw new ApiError_1.default(400, "Your account is deleted!");
+    if (auth?.loginProvider === client_1.LoginProvider.EMAIL)
+        throw new ApiError_1.default(400, "Already registered with email!");
+    // prepare tokens
+    const jwtPayload = {
+        email: payload.email,
+        role: payload.role,
+        id: auth?.id,
+    };
+    if (auth) {
+        await prisma_1.default.auth.update({
+            where: {
+                email: payload.email,
+            },
+            data: {
+                fcmToken: payload.fcmToken,
+            },
+        });
+    }
+    else {
+        const authData = {
+            email: payload.email,
+            password: "",
+            loginProvider: client_1.LoginProvider.GOOGLE,
+            fcmToken: payload.fcmToken,
+            role: payload.role,
+            status: client_1.UserStatus.ACTIVE,
+        };
+        const userData = {
+            name: payload.name,
+            email: payload.email,
+            image: payload.image,
+        };
+        await prisma_1.default.$transaction(async (tn) => {
+            const auth = await tn.auth.create({
+                data: authData,
+            });
+            jwtPayload.id = auth.id;
+            if (payload.role === client_1.UserRole.PERSON) {
+                userData.industry = "N/A";
+                await tn.person.create({
+                    data: userData,
+                });
+            }
+            else {
+                userData.industry = "N/A";
+                await tn.business.create({
+                    data: userData,
+                });
+            }
+        });
+    }
+    const accessToken = jsonwebtoken_1.default.sign(jwtPayload, config_1.default.jwt.accessSecret, {
+        expiresIn: config_1.default.jwt.refreshExpiration,
+    });
+    return {
+        accessToken,
+    };
+};
+const getAll = async (options, query) => {
     const andConditions = [];
     andConditions.push({
         OR: [
@@ -77,13 +142,46 @@ const getAll = async (options) => {
                 role: client_1.UserRole.BUSINESS,
             },
         ],
+        status: { in: [client_1.UserStatus.ACTIVE, client_1.UserStatus.BLOCKED] },
     });
+    if (query.searchTerm) {
+        andConditions.push({
+            OR: [
+                {
+                    email: { contains: query.searchTerm, mode: "insensitive" },
+                },
+                {
+                    person: {
+                        OR: [
+                            { name: { contains: query.searchTerm, mode: "insensitive" } },
+                            { title: { contains: query.searchTerm, mode: "insensitive" } },
+                        ],
+                    },
+                },
+                {
+                    business: {
+                        OR: [
+                            { name: { contains: query.searchTerm, mode: "insensitive" } },
+                            { industry: { contains: query.searchTerm, mode: "insensitive" } },
+                        ],
+                    },
+                },
+            ],
+        });
+    }
+    if (query.role) {
+        andConditions.push({
+            role: query.role,
+        });
+    }
     const whereConditions = andConditions.length > 0 ? { AND: andConditions } : {};
     const { page, take, skip, sortBy, orderBy } = (0, paginationCalculation_1.calculatePagination)(options);
-    const personAuths = await prisma_1.default.auth.findMany({
+    const auths = await prisma_1.default.auth.findMany({
         where: whereConditions,
         select: {
             id: true,
+            role: true,
+            status: true,
             createdAt: true,
             person: {
                 select: {
@@ -121,7 +219,38 @@ const getAll = async (options) => {
         limit: take,
         total,
     };
-    return { meta, personAuths };
+    return { meta, auths };
+};
+const getSingle = async (id) => {
+    const auth = await prisma_1.default.auth.findUnique({
+        where: {
+            id,
+        },
+        select: {
+            id: true,
+            email: true,
+            role: true,
+            status: true,
+            createdAt: true,
+            person: {
+                select: {
+                    name: true,
+                    image: true,
+                    title: true,
+                    address: true,
+                },
+            },
+            business: {
+                select: {
+                    name: true,
+                    image: true,
+                    industry: true,
+                    address: true,
+                },
+            },
+        },
+    });
+    return auth;
 };
 const resetPassword = async (payload) => {
     const auth = await prisma_1.default.auth.findUniqueOrThrow({
@@ -261,6 +390,8 @@ const toggleNotificationPermission = async (id) => {
 };
 exports.authServices = {
     login,
+    googleLogin,
+    getSingle,
     getAll,
     refreshToken,
     resetPassword,

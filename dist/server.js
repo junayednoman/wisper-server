@@ -10,13 +10,10 @@ const config_1 = __importDefault(require("./app/config"));
 const socket_init_1 = require("./app/socket/socket.init");
 let server;
 const main = () => {
-    server = app_1.default.listen(config_1.default.port, () => {
-        console.log(` API server is running on port: ${config_1.default.port}`);
-    });
-    const socketServer = new http_1.Server();
-    (0, socket_init_1.initSocket)(socketServer);
-    socketServer.listen(config_1.default.socket_port, () => {
-        console.log("🚀 Socket server is running on port:", config_1.default.socket_port);
+    server = (0, http_1.createServer)(app_1.default);
+    (0, socket_init_1.initSocket)(server);
+    server.listen(config_1.default.port, () => {
+        console.log(`Server running on port: ${config_1.default.port}`);
     });
 };
 main();

@@ -12,7 +12,11 @@ const routeNotFoundHandler_1 = __importDefault(require("./middlewares/routeNotFo
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: ["http://localhost:3000", "http://72.244.153.29:3000"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+}));
 app.use((0, cookie_parser_1.default)());
 app.get("/", (_req, res) => {
     res.send({
@@ -20,6 +24,7 @@ app.get("/", (_req, res) => {
     });
 });
 app.use("/api/v1", routes_1.default);
+app.use("/.well-known", express_1.default.static(".well-known"));
 app.use(globalErrorHandler_1.default);
 app.use(routeNotFoundHandler_1.default);
 exports.default = app;

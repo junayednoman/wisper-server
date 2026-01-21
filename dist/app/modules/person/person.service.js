@@ -76,7 +76,7 @@ const signUp = async (payload) => {
     }
     return result;
 };
-const getSingle = async (id) => {
+const getSingle = async (id, currentAuthId) => {
     const result = await prisma_1.default.auth.findUnique({
         where: {
             id: id,
@@ -99,25 +99,24 @@ const getSingle = async (id) => {
             },
         },
     });
-    const recommendations = await prisma_1.default.recommendation.findMany({
+    const connection = await prisma_1.default.connection.findFirst({
         where: {
-            receiverId: id,
-        },
-        select: {
-            id: true,
-            receiver: {
-                select: {
-                    person: {
-                        select: {
-                            image: true,
-                            name: true,
-                        },
-                    },
+            OR: [
+                {
+                    requesterId: currentAuthId,
+                    receiverId: id,
                 },
-            },
+                {
+                    requesterId: id,
+                    receiverId: currentAuthId,
+                },
+            ],
         },
     });
-    return { auth: result, recommendations };
+    return {
+        auth: result,
+        connection,
+    };
 };
 const getMyProfile = async (id) => {
     const result = await prisma_1.default.auth.findUnique({
@@ -150,25 +149,7 @@ const getMyProfile = async (id) => {
             },
         },
     });
-    const recommendations = await prisma_1.default.recommendation.findMany({
-        where: {
-            receiverId: id,
-        },
-        select: {
-            id: true,
-            receiver: {
-                select: {
-                    person: {
-                        select: {
-                            image: true,
-                            name: true,
-                        },
-                    },
-                },
-            },
-        },
-    });
-    return { auth: result, recommendations };
+    return { auth: result };
 };
 const updateMyProfile = async (email, payload) => {
     const result = await prisma_1.default.person.update({
@@ -188,7 +169,6 @@ const updateProfileImage = async (email, file) => {
         },
     });
     const image = await (0, awss3_1.uploadToS3)(file);
-    console.log("image, ", image);
     const result = await prisma_1.default.person.update({
         where: {
             email,
@@ -201,12 +181,29 @@ const updateProfileImage = async (email, file) => {
         await (0, awss3_1.deleteFromS3)(person.image);
     return result;
 };
-const getUserRoles = async (options) => {
+const getUserRoles = async (options, query, currentAuthId) => {
+    const andConditions = [];
+    andConditions.push({
+        role: client_1.UserRole.PERSON,
+    });
+    if (query.searchTerm) {
+        andConditions.push({
+            OR: [
+                {
+                    person: {
+                        OR: [
+                            { name: { contains: query.searchTerm, mode: "insensitive" } },
+                            { title: { contains: query.searchTerm, mode: "insensitive" } },
+                        ],
+                    },
+                },
+            ],
+        });
+    }
+    const whereConditions = andConditions.length > 0 ? { AND: andConditions } : {};
     const { page, take, skip, sortBy, orderBy } = (0, paginationCalculation_1.calculatePagination)(options);
     const roles = await prisma_1.default.auth.findMany({
-        where: {
-            role: client_1.UserRole.PERSON,
-        },
+        where: whereConditions,
         select: {
             id: true,
             person: {
@@ -222,10 +219,45 @@ const getUserRoles = async (options) => {
                     receivedRecommendations: true,
                 },
             },
+            requestedConnections: {
+                where: {
+                    receiverId: currentAuthId,
+                },
+                select: {
+                    status: true,
+                    requesterId: true,
+                },
+            },
+            receivedConnections: {
+                where: {
+                    requesterId: currentAuthId,
+                },
+                select: {
+                    status: true,
+                    receiverId: true,
+                },
+            },
         },
         skip,
         take,
         orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+    });
+    const mappedRoles = roles.map(user => {
+        const outgoing = user.receivedConnections[0];
+        const incoming = user.requestedConnections[0];
+        let connectionStatus = "NOT_CONNECTED";
+        if (outgoing) {
+            connectionStatus =
+                outgoing.status === "PENDING" ? "REQUEST_SENT" : outgoing.status;
+        }
+        if (incoming) {
+            connectionStatus =
+                incoming.status === "PENDING" ? "REQUEST_RECEIVED" : incoming.status;
+        }
+        return {
+            ...user,
+            connectionStatus,
+        };
     });
     const total = await prisma_1.default.auth.count({
         where: {
@@ -237,7 +269,7 @@ const getUserRoles = async (options) => {
         limit: take,
         total,
     };
-    return { meta, roles };
+    return { meta, roles: mappedRoles };
 };
 exports.personServices = {
     signUp,

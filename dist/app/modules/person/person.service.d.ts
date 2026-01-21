@@ -8,13 +8,13 @@ export declare const personServices: {
         updatedAt: Date;
         name: string;
         phone: string | null;
-        industry: string;
         image: string | null;
+        industry: string;
         title: string | null;
         defaultResumeId: string | null;
         address: string | null;
     }>;
-    getSingle: (id: string) => Promise<{
+    getSingle: (id: string, currentAuthId: string) => Promise<{
         auth: {
             id: string;
             createdAt: Date;
@@ -23,21 +23,19 @@ export declare const personServices: {
                 email: string;
                 name: string;
                 phone: string | null;
-                industry: string;
                 image: string | null;
+                industry: string;
                 title: string | null;
                 address: string | null;
             } | null;
         } | null;
-        recommendations: {
+        connection: {
             id: string;
-            receiver: {
-                person: {
-                    name: string;
-                    image: string | null;
-                } | null;
-            } | null;
-        }[];
+            status: import(".prisma/client").$Enums.ConnectionStatus;
+            createdAt: Date;
+            requesterId: string;
+            receiverId: string;
+        } | null;
     }>;
     getMyProfile: (id: string) => Promise<{
         auth: {
@@ -49,8 +47,8 @@ export declare const personServices: {
                 email: string;
                 name: string;
                 phone: string | null;
-                industry: string;
                 image: string | null;
+                industry: string;
                 title: string | null;
                 address: string | null;
                 defaultResume: {
@@ -61,15 +59,6 @@ export declare const personServices: {
                 } | null;
             } | null;
         } | null;
-        recommendations: {
-            id: string;
-            receiver: {
-                person: {
-                    name: string;
-                    image: string | null;
-                } | null;
-            } | null;
-        }[];
     }>;
     updateMyProfile: (email: string, payload: TUpdatePersonProfile) => Promise<{
         id: string;
@@ -77,8 +66,8 @@ export declare const personServices: {
         updatedAt: Date;
         name: string;
         phone: string | null;
-        industry: string;
         image: string | null;
+        industry: string;
         title: string | null;
         defaultResumeId: string | null;
         address: string | null;
@@ -89,25 +78,34 @@ export declare const personServices: {
         updatedAt: Date;
         name: string;
         phone: string | null;
-        industry: string;
         image: string | null;
+        industry: string;
         title: string | null;
         defaultResumeId: string | null;
         address: string | null;
     }>;
-    getUserRoles: (options: TPaginationOptions) => Promise<{
+    getUserRoles: (options: TPaginationOptions, query: Record<string, any>, currentAuthId: string) => Promise<{
         meta: {
             page: number;
             limit: number;
             total: number;
         };
         roles: {
+            connectionStatus: string;
             id: string;
             person: {
                 name: string;
                 image: string | null;
                 title: string | null;
             } | null;
+            requestedConnections: {
+                status: import(".prisma/client").$Enums.ConnectionStatus;
+                requesterId: string;
+            }[];
+            receivedConnections: {
+                status: import(".prisma/client").$Enums.ConnectionStatus;
+                receiverId: string;
+            }[];
             _count: {
                 posts: number;
                 receivedRecommendations: number;

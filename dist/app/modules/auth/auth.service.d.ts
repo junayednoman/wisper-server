@@ -1,27 +1,51 @@
 import { UserStatus } from "@prisma/client";
-import { TChangePasswordInput, TLoginInput, TResetPasswordInput } from "./auth.validation";
+import { TChangePasswordInput, TGoogleLoginInput, TLoginInput, TResetPasswordInput } from "./auth.validation";
 import { TPaginationOptions } from "../../utils/paginationCalculation";
 export declare const authServices: {
     login: (payload: TLoginInput) => Promise<{
         accessToken: string;
         refreshToken: string;
     }>;
-    getAll: (options: TPaginationOptions) => Promise<{
+    googleLogin: (payload: TGoogleLoginInput) => Promise<{
+        accessToken: string;
+    }>;
+    getSingle: (id: string) => Promise<{
+        id: string;
+        email: string;
+        role: import(".prisma/client").$Enums.UserRole;
+        status: import(".prisma/client").$Enums.UserStatus;
+        createdAt: Date;
+        person: {
+            name: string;
+            image: string | null;
+            title: string | null;
+            address: string | null;
+        } | null;
+        business: {
+            name: string;
+            image: string | null;
+            industry: string;
+            address: string | null;
+        } | null;
+    } | null>;
+    getAll: (options: TPaginationOptions, query: Record<string, any>) => Promise<{
         meta: {
             page: number;
             limit: number;
             total: number;
         };
-        personAuths: {
+        auths: {
             id: string;
+            role: import(".prisma/client").$Enums.UserRole;
+            status: import(".prisma/client").$Enums.UserStatus;
             createdAt: Date;
             person: {
                 id: string;
                 email: string;
                 name: string;
                 phone: string | null;
-                industry: string;
                 image: string | null;
+                industry: string;
                 title: string | null;
                 address: string | null;
             } | null;
@@ -30,8 +54,8 @@ export declare const authServices: {
                 email: string;
                 name: string;
                 phone: string | null;
-                industry: string;
                 image: string | null;
+                industry: string;
                 address: string | null;
             } | null;
         }[];
