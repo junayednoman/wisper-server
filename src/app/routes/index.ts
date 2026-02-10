@@ -24,6 +24,7 @@ import { legalRoutes } from "../modules/legal/legal.routes";
 import { dashboardRoutes } from "../modules/dashboard/dashboard.routes";
 import { boostRoutes } from "../modules/boost/boost.routes";
 import { notificationRoutes } from "../modules/notification/notification.routes";
+import { paymentRoutes } from "../modules/payment/payment.routes";
 
 const router = Router();
 
@@ -51,6 +52,7 @@ const routes = [
   { path: "/dashboard", route: dashboardRoutes },
   { path: "/boosts", route: boostRoutes },
   { path: "/notifications", route: notificationRoutes },
+  { path: "/payments", route: paymentRoutes },
 
   { path: "/admins", route: adminRoutes },
   { path: "/upload-files", route: fileRoutes },
