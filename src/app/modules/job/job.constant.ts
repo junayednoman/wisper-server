@@ -6,6 +6,7 @@ export const jobFilterableFields = [
   "location",
   "qualification",
   "applicationType",
+  "locationType",
   "experienceLevel",
   "compensationType",
 ];
