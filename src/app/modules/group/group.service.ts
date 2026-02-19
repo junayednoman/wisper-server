@@ -57,7 +57,8 @@ const createGroup = async (payload: TCreateGroup, authId: string) => {
 
 const getAllGroups = async (
   options: TPaginationOptions,
-  query: Record<string, any>
+  query: Record<string, any>,
+  authId: string
 ) => {
   const andConditions: Prisma.GroupWhereInput[] = [];
 
@@ -66,6 +67,20 @@ const getAllGroups = async (
       OR: [{ name: { contains: query.searchTerm, mode: "insensitive" } }],
     });
   }
+
+  andConditions.push({
+    NOT: {
+      chat: {
+        is: {
+          participants: {
+            some: {
+              authId,
+            },
+          },
+        },
+      },
+    },
+  });
 
   const whereConditions: Prisma.GroupWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};
@@ -301,6 +316,44 @@ const addGroupMember = async (
   return result;
 };
 
+const joinGroup = async (groupId: string, authId: string) => {
+  const group = await prisma.group.findUniqueOrThrow({
+    where: {
+      id: groupId,
+    },
+    select: {
+      chat: {
+        select: {
+          id: true,
+          participants: {
+            where: {
+              authId,
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const isAlreadyJoined = (group.chat?.participants.length || 0) > 0;
+  if (isAlreadyJoined) throw new ApiError(400, "Member already exist!");
+
+  if (!group.chat?.id) throw new ApiError(400, "Group chat not found!");
+
+  const result = await prisma.chatParticipant.create({
+    data: {
+      chatId: group.chat.id,
+      authId,
+      role: ChatRole.MEMBER,
+    },
+  });
+
+  return result;
+};
+
 const changeGroupImage = async (groupId: string, file: TFile) => {
   if (!file) throw new ApiError(400, "File is required!");
   const group = await prisma.group.findUniqueOrThrow({
@@ -373,6 +426,7 @@ export const groupServices = {
   createGroup,
   getSingleGroup,
   addGroupMember,
+  joinGroup,
   changeGroupImage,
   updateGroupData,
   toggleGroupVisibility,

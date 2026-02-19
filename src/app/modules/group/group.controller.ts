@@ -16,7 +16,11 @@ const createGroup = handleAsyncRequest(async (req: TRequest, res) => {
 
 const getAllGroups = handleAsyncRequest(async (req: TRequest, res) => {
   const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
-  const result = await groupServices.getAllGroups(options, req.query);
+  const result = await groupServices.getAllGroups(
+    options,
+    req.query,
+    req.user!.id
+  );
   sendResponse(res, {
     message: "Groups retrieved successfully!",
     data: result,
@@ -52,6 +56,17 @@ const addGroupMember = handleAsyncRequest(async (req: TRequest, res) => {
   );
   sendResponse(res, {
     message: "Group member added successfully!",
+    data: result,
+  });
+});
+
+const joinGroup = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await groupServices.joinGroup(
+    req.params.id as string,
+    req.user!.id
+  );
+  sendResponse(res, {
+    message: "Joined group successfully!",
     data: result,
   });
 });
@@ -105,6 +120,7 @@ export const groupController = {
   getAllGroups,
   getSingleGroup,
   addGroupMember,
+  joinGroup,
   changeGroupImage,
   updateGroupData,
   toggleGroupVisibility,

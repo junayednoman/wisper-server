@@ -19,7 +19,11 @@ router.post(
   groupController.createGroup
 );
 
-router.get("/", authorize(UserRole.ADMIN), groupController.getAllGroups);
+router.get(
+  "/",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  groupController.getAllGroups
+);
 
 router.get(
   "/:id",
@@ -38,6 +42,12 @@ router.post(
   authorize(UserRole.PERSON, UserRole.BUSINESS),
   handleZodValidation(addGroupMemberZod),
   groupController.addGroupMember
+);
+
+router.post(
+  "/join/:id",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  groupController.joinGroup
 );
 
 router.patch(
