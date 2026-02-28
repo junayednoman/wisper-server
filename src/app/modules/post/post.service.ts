@@ -1,4 +1,5 @@
 import {
+  BoostStatus,
   CommentAccess,
   ConnectionStatus,
   PostStatus,
@@ -124,47 +125,138 @@ const getFeedPosts = async (userId: string, options: TPaginationOptions) => {
     andConditions.length > 0 ? { AND: andConditions } : {};
 
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
-  const posts = await prisma.post.findMany({
-    where: whereConditions,
-    select: {
-      id: true,
-      caption: true,
-      images: true,
-      views: true,
-      createdAt: true,
-      commentAccess: true,
-      author: {
-        select: {
-          id: true,
-          person: {
-            select: {
-              id: true,
-              name: true,
-              title: true,
-              image: true,
-            },
+
+  const orderByClause: Prisma.PostOrderByWithRelationInput =
+    sortBy && orderBy
+      ? ({ [sortBy]: orderBy } as Prisma.PostOrderByWithRelationInput)
+      : { createdAt: Prisma.SortOrder.desc };
+
+  const postSelect = {
+    id: true,
+    caption: true,
+    images: true,
+    views: true,
+    createdAt: true,
+    commentAccess: true,
+    author: {
+      select: {
+        id: true,
+        person: {
+          select: {
+            id: true,
+            name: true,
+            title: true,
+            image: true,
           },
-          business: {
-            select: {
-              id: true,
-              name: true,
-              industry: true,
-              image: true,
-            },
+        },
+        business: {
+          select: {
+            id: true,
+            name: true,
+            industry: true,
+            image: true,
           },
         },
       },
     },
-    skip,
-    take,
-    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+  } as const satisfies Prisma.PostSelect;
+
+  type FeedPost = Prisma.PostGetPayload<{ select: typeof postSelect }>;
+
+  const industry =
+    currentAuth?.business?.industry || currentAuth?.person?.industry || "";
+
+  const boostTargetFilter: Prisma.BoostWhereInput | null = industry
+    ? {
+        OR: [
+          {
+            targetIndustry: {
+              contains: industry,
+              mode: "insensitive",
+            },
+          },
+          {
+            targetIndustry: {
+              equals: "ALL",
+              mode: "insensitive",
+            },
+          },
+        ],
+      }
+    : null;
+
+  let boostedPosts: FeedPost[] = [];
+  let boostedTotal = 0;
+
+  if (boostTargetFilter) {
+    const boostAudienceFilter: Prisma.BoostWhereInput = {
+      status: BoostStatus.ACTIVE,
+      AND: [boostTargetFilter],
+    };
+
+    const boostedWhere: Prisma.PostWhereInput = {
+      status: PostStatus.ACTIVE,
+      boosts: {
+        some: boostAudienceFilter,
+      },
+    };
+
+    boostedTotal = await prisma.post.count({ where: boostedWhere });
+
+    const boostedSkip = Math.min(skip, boostedTotal);
+    const boostedTake = Math.max(0, Math.min(take, boostedTotal - boostedSkip));
+
+    if (boostedTake > 0) {
+      boostedPosts = await prisma.post.findMany({
+        where: boostedWhere,
+        select: postSelect,
+        skip: boostedSkip,
+        take: boostedTake,
+        orderBy: orderByClause,
+      });
+    }
+  }
+
+  const normalSkip = boostTargetFilter
+    ? Math.max(0, skip - boostedTotal)
+    : skip;
+  const normalTake = take - boostedPosts.length;
+
+  const normalWhere: Prisma.PostWhereInput = boostTargetFilter
+    ? {
+        AND: andConditions,
+        NOT: {
+          boosts: {
+            some: {
+              status: BoostStatus.ACTIVE,
+              AND: [boostTargetFilter],
+            },
+          },
+        },
+      }
+    : whereConditions;
+
+  const normalPosts: FeedPost[] =
+    normalTake > 0
+      ? await prisma.post.findMany({
+          where: normalWhere,
+          select: postSelect,
+          skip: normalSkip,
+          take: normalTake,
+          orderBy: orderByClause,
+        })
+      : [];
+
+  // Preserve existing behavior: shuffle normal posts only, keep boosted on top.
+  normalPosts.sort(() => Math.random() - 0.5);
+
+  const posts = [...boostedPosts, ...normalPosts];
+
+  const normalTotal = await prisma.post.count({
+    where: normalWhere,
   });
 
-  const total = await prisma.post.count({
-    where: whereConditions,
-  });
-
-  posts.sort(() => Math.random() - 0.5);
+  const total = boostedTotal + normalTotal;
 
   const meta = {
     page,
