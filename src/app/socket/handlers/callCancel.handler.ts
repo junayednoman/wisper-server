@@ -52,6 +52,10 @@ export const callCancel = eventHandler<TCallCancelPayload>(
       throw new ApiError(403, "Only the caller can cancel this call.");
     }
 
+    if (call.status !== CallStatus.RINGING) {
+      throw new ApiError(400, "Call can only be canceled before acceptance.");
+    }
+
     const now = new Date();
 
     const updatedCall = await prisma.call.update({
