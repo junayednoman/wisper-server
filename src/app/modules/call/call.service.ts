@@ -13,6 +13,7 @@ import {
   calculatePagination,
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
+import config from "../../config";
 
 const createCall = async (userId: string, payload: TCall) => {
   for (const participant of payload.participants) {
@@ -198,8 +199,8 @@ const generateCallToken = async (
   userId: string,
   payload: TCallTokenPayload
 ) => {
-  const appId = process.env.AGORA_APP_ID;
-  const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+  const appId = config.agora.appId;
+  const appCertificate = config.agora.appCertificate;
 
   if (!appId || !appCertificate) {
     throw new ApiError(500, "Agora credentials are not configured.");
@@ -236,9 +237,7 @@ const generateCallToken = async (
     throw new ApiError(400, "Call has already ended.");
   }
 
-  const expireSeconds = Number(
-    process.env.AGORA_TOKEN_EXPIRE_SECONDS ?? "3600"
-  );
+  const expireSeconds = Number(config.agora.tokenExpireSeconds);
   const currentTimestamp = Math.floor(Date.now() / 1000);
   const privilegeExpiredTs = currentTimestamp + expireSeconds;
 

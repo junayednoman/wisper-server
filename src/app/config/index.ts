@@ -32,4 +32,9 @@ export default {
     secret_key: process.env.STRIPE_SECRET_KEY,
     callback_endpoint: process.env.PAYMENT_CALLBACK_ENDPOINT,
   },
+  agora: {
+    appId: process.env.AGORA_APP_ID,
+    appCertificate: process.env.AGORA_APP_CERTIFICATE,
+    tokenExpireSeconds: process.env.AGORA_TOKEN_EXPIRE_SECONDS,
+  },
 };
