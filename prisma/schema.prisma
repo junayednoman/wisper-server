@@ -396,21 +396,28 @@ model Call {
   roomId       String
   type         CallType
   mode         CallMode
+  status       CallStatus        @default(RINGING)
   duration     Int
   participants CallParticipant[]
   date         DateTime          @default(now())
+  startedAt    DateTime?
+  endedAt      DateTime?
 
   @@map("calls")
 }
 
 model CallParticipant {
-  id     String     @id @default(uuid())
-  callId String
-  call   Call       @relation(fields: [callId], references: [id])
-  authId String
-  auth   Auth       @relation(fields: [authId], references: [id])
-  role   CallRole
-  status CallStatus
+  id             String     @id @default(uuid())
+  callId         String
+  call           Call       @relation(fields: [callId], references: [id])
+  authId         String
+  auth           Auth       @relation(fields: [authId], references: [id])
+  role           CallRole
+  status         CallParticipantStatus
+  joinedAt       DateTime?
+  leftAt         DateTime?
+  isMuted        Boolean?   @default(false)
+  isVideoEnabled Boolean?   @default(true)
 
   @@map("call_participants")
 }
@@ -483,6 +490,14 @@ enum TransactionType {
 }
 
 enum CallStatus {
+  RINGING
+  ONGOING
+  ENDED
+  MISSED
+  CANCELED
+}
+
+enum CallParticipantStatus {
   MISSED
   OUTGOING
   INCOMING

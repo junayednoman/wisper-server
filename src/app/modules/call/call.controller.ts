@@ -22,4 +22,28 @@ const getMyCalls = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-export const callController = { createCall, getMyCalls };
+const generateToken = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await callService.generateCallToken(req.user!.id, req.body);
+  sendResponse(res, {
+    message: "Token generated successfully!",
+    data: result,
+  });
+});
+
+const endCall = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await callService.endCall(
+    req.user!.id,
+    req.params.id as string
+  );
+  sendResponse(res, {
+    message: "Call ended successfully!",
+    data: result,
+  });
+});
+
+export const callController = {
+  createCall,
+  getMyCalls,
+  generateToken,
+  endCall,
+};

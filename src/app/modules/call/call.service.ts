@@ -1,5 +1,12 @@
-import { CallParticipant, CallRole, CallStatus, Prisma } from "@prisma/client";
-import { TCall, TCallParticipant } from "./call.validation";
+import {
+  CallParticipant,
+  CallParticipantStatus,
+  CallRole,
+  CallStatus,
+  Prisma,
+} from "@prisma/client";
+import { RtcRole, RtcTokenBuilder } from "agora-access-token";
+import { TCall, TCallParticipant, TCallTokenPayload } from "./call.validation";
 import prisma from "../../utils/prisma";
 import ApiError from "../../middlewares/classes/ApiError";
 import {
@@ -37,7 +44,7 @@ const createCall = async (userId: string, payload: TCall) => {
       callId: newCall.id,
       authId: userId,
       role: CallRole.CALLER,
-      status: CallStatus.OUTGOING,
+      status: CallParticipantStatus.OUTGOING,
     });
 
     await tn.callParticipant.createMany({ data: participantPayloads });
@@ -131,4 +138,142 @@ const getMyCalls = async (
   return { meta, calls };
 };
 
-export const callService = { createCall, getMyCalls };
+const endCall = async (userId: string, callId: string) => {
+  const call = await prisma.call.findUnique({
+    where: {
+      id: callId,
+    },
+    include: {
+      participants: {
+        where: {
+          authId: userId,
+        },
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (!call || !call.participants.length) {
+    throw new ApiError(403, "You are not a participant of this call.");
+  }
+
+  if (call.status === CallStatus.ENDED || call.status === CallStatus.CANCELED) {
+    return call;
+  }
+
+  const endedAt = new Date();
+  const startedAt = call.startedAt ?? call.date;
+  const durationSeconds = Math.max(
+    0,
+    Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000)
+  );
+
+  const result = await prisma.call.update({
+    where: {
+      id: callId,
+    },
+    data: {
+      status: CallStatus.ENDED,
+      endedAt,
+      duration: durationSeconds,
+    },
+  });
+
+  await prisma.callParticipant.updateMany({
+    where: {
+      callId,
+      leftAt: null,
+    },
+    data: {
+      leftAt: endedAt,
+    },
+  });
+
+  return result;
+};
+
+const generateCallToken = async (
+  userId: string,
+  payload: TCallTokenPayload
+) => {
+  const appId = process.env.AGORA_APP_ID;
+  const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+
+  if (!appId || !appCertificate) {
+    throw new ApiError(500, "Agora credentials are not configured.");
+  }
+
+  const call = await prisma.call.findUnique({
+    where: {
+      id: payload.callId,
+    },
+    select: {
+      id: true,
+      roomId: true,
+      status: true,
+      participants: {
+        where: {
+          authId: userId,
+        },
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (!call || !call.participants.length) {
+    throw new ApiError(403, "You are not a participant of this call.");
+  }
+
+  if (call.roomId !== payload.roomId) {
+    throw new ApiError(400, "Room id does not match the call.");
+  }
+
+  if (call.status === CallStatus.ENDED || call.status === CallStatus.CANCELED) {
+    throw new ApiError(400, "Call has already ended.");
+  }
+
+  const expireSeconds = Number(
+    process.env.AGORA_TOKEN_EXPIRE_SECONDS ?? "3600"
+  );
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const privilegeExpiredTs = currentTimestamp + expireSeconds;
+
+  const role =
+    payload.role === "PUBLISHER" ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
+
+  const token =
+    typeof payload.uid === "number"
+      ? RtcTokenBuilder.buildTokenWithUid(
+          appId,
+          appCertificate,
+          payload.roomId,
+          payload.uid,
+          role,
+          privilegeExpiredTs
+        )
+      : RtcTokenBuilder.buildTokenWithAccount(
+          appId,
+          appCertificate,
+          payload.roomId,
+          payload.uid,
+          role,
+          privilegeExpiredTs
+        );
+
+  return {
+    token,
+    expiresAt: new Date(privilegeExpiredTs * 1000).toISOString(),
+    expiresIn: expireSeconds,
+  };
+};
+
+export const callService = {
+  createCall,
+  getMyCalls,
+  generateCallToken,
+  endCall,
+};
