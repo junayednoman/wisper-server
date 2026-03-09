@@ -8,6 +8,7 @@ import onlineUsers from "../utils/onlineUsers";
 
 type TCallInvitePayload = {
   callId: string;
+  token: string;
 };
 
 const emitToParticipants = (
@@ -82,6 +83,7 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       type: call.type,
       mode: call.mode,
       status: CallStatus.RINGING,
+      token: data.token,
     });
 
     ackHandler(ack, {
