@@ -72,9 +72,9 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       },
     });
 
-    const participantIds = call.participants.map(
-      participant => participant.authId
-    );
+    const participantIds = call.participants
+      .filter(participant => participant.role === CallRole.RECEIVER)
+      .map(participant => participant.authId);
 
     emitToParticipants(participantIds, "callIncoming", {
       callId: call.id,
