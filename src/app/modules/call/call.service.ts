@@ -14,6 +14,7 @@ import {
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
 import config from "../../config";
+import { randomUUID } from "crypto";
 
 const createCall = async (userId: string, payload: TCall) => {
   for (const participant of payload.participants) {
@@ -26,9 +27,15 @@ const createCall = async (userId: string, payload: TCall) => {
     if (!user) throw new ApiError(400, `Invalid user id: ${participant.id}`);
   }
   const { participants, ...callData } = payload;
+  const roomId = `call_${randomUUID()}`;
+
   const result = await prisma.$transaction(async tn => {
     const newCall = await tn.call.create({
-      data: callData,
+      data: {
+        ...callData,
+        roomId,
+        duration: 0,
+      },
     });
 
     const participantPayloads: Pick<
@@ -237,34 +244,26 @@ const generateCallToken = async (
     throw new ApiError(400, "Call has already ended.");
   }
 
-  const expireSeconds = Number(config.agora.tokenExpireSeconds);
+  const expireSeconds = Number(config.agora.tokenExpireSeconds ?? "3600");
   const currentTimestamp = Math.floor(Date.now() / 1000);
   const privilegeExpiredTs = currentTimestamp + expireSeconds;
 
-  const role =
-    payload.role === "PUBLISHER" ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
+  const role = RtcRole.PUBLISHER;
 
-  const token =
-    typeof payload.uid === "number"
-      ? RtcTokenBuilder.buildTokenWithUid(
-          appId,
-          appCertificate,
-          payload.roomId,
-          payload.uid,
-          role,
-          privilegeExpiredTs
-        )
-      : RtcTokenBuilder.buildTokenWithAccount(
-          appId,
-          appCertificate,
-          payload.roomId,
-          payload.uid,
-          role,
-          privilegeExpiredTs
-        );
+  const uid = userId;
+
+  const token = RtcTokenBuilder.buildTokenWithAccount(
+    appId,
+    appCertificate,
+    payload.roomId,
+    uid,
+    role,
+    privilegeExpiredTs
+  );
 
   return {
     token,
+    uid,
     expiresAt: new Date(privilegeExpiredTs * 1000).toISOString(),
     expiresIn: expireSeconds,
   };

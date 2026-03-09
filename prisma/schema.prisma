@@ -407,17 +407,17 @@ model Call {
 }
 
 model CallParticipant {
-  id             String     @id @default(uuid())
+  id             String                @id @default(uuid())
   callId         String
-  call           Call       @relation(fields: [callId], references: [id])
+  call           Call                  @relation(fields: [callId], references: [id])
   authId         String
-  auth           Auth       @relation(fields: [authId], references: [id])
+  auth           Auth                  @relation(fields: [authId], references: [id])
   role           CallRole
   status         CallParticipantStatus
   joinedAt       DateTime?
   leftAt         DateTime?
-  isMuted        Boolean?   @default(false)
-  isVideoEnabled Boolean?   @default(true)
+  isMuted        Boolean?              @default(false)
+  isVideoEnabled Boolean?              @default(true)
 
   @@map("call_participants")
 }
