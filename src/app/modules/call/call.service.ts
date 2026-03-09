@@ -14,7 +14,14 @@ import {
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
 import config from "../../config";
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
+
+const getNumericAgoraUid = (userId: string) => {
+  // Deterministic uint32 uid so the same user always gets the same Agora uid.
+  const hash = createHash("sha256").update(userId).digest();
+  const uid = hash.readUInt32BE(0);
+  return uid === 0 ? 1 : uid;
+};
 
 const createCall = async (userId: string, payload: TCall) => {
   for (const participant of payload.participants) {
@@ -250,9 +257,9 @@ const generateCallToken = async (
 
   const role = RtcRole.PUBLISHER;
 
-  const uid = userId;
+  const uid = getNumericAgoraUid(userId);
 
-  const token = RtcTokenBuilder.buildTokenWithAccount(
+  const token = RtcTokenBuilder.buildTokenWithUid(
     appId,
     appCertificate,
     payload.roomId,
