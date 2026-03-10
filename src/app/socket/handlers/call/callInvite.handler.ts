@@ -37,6 +37,22 @@ export const callInvite = eventHandler<TCallInvitePayload>(
           select: {
             authId: true,
             role: true,
+            auth: {
+              select: {
+                person: {
+                  select: {
+                    name: true,
+                    image: true,
+                  },
+                },
+                business: {
+                  select: {
+                    name: true,
+                    image: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -77,6 +93,11 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       .filter(participant => participant.role === CallRole.RECEIVER)
       .map(participant => participant.authId);
 
+    const callerName =
+      caller?.auth?.person?.name ?? caller?.auth?.business?.name;
+    const callerImage =
+      caller?.auth?.person?.image ?? caller?.auth?.business?.image;
+
     emitToParticipants(participantIds, "callIncoming", {
       callId: call.id,
       roomId: call.roomId,
@@ -84,6 +105,8 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       mode: call.mode,
       status: CallStatus.RINGING,
       token: data.token,
+      callerName,
+      callerImage,
     });
 
     ackHandler(ack, {
@@ -92,4 +115,3 @@ export const callInvite = eventHandler<TCallInvitePayload>(
     });
   }
 );
-
