@@ -8,6 +8,7 @@ import onlineUsers from "../../utils/onlineUsers";
 
 type TCallEndPayload = {
   callId: string;
+  duration: number;
 };
 
 const emitToParticipants = (
@@ -59,11 +60,7 @@ export const callEnd = eventHandler<TCallEndPayload>(
     }
 
     const endedAt = new Date();
-    const startedAt = call.startedAt ?? call.date;
-    const durationSeconds = Math.max(
-      0,
-      Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000)
-    );
+    const durationSeconds = Math.max(0, Math.floor(data.duration));
 
     const updatedCall = await prisma.call.update({
       where: {
@@ -103,4 +100,3 @@ export const callEnd = eventHandler<TCallEndPayload>(
     });
   }
 );
-
