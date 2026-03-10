@@ -9,6 +9,7 @@ import onlineUsers from "../../utils/onlineUsers";
 type TCallInvitePayload = {
   callId: string;
   token: string;
+  groupName: string | null;
 };
 
 const emitToParticipants = (
@@ -107,6 +108,7 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       token: data.token,
       callerName,
       callerImage,
+      groupName: data.groupName,
     });
 
     ackHandler(ack, {

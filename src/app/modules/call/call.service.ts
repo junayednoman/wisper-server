@@ -109,6 +109,7 @@ const getMyCalls = async (
       id: true,
       type: true,
       duration: true,
+      mode: true,
       date: true,
       participants: {
         where: {
