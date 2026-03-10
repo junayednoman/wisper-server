@@ -64,11 +64,11 @@ export const callDecline = eventHandler<TCallDeclinePayload>(
       },
     });
 
-    const receivers = call.participants.filter(
-      participant => participant.role === CallRole.RECEIVER
+    const callers = call.participants.filter(
+      participant => participant.role === CallRole.CALLER
     );
 
-    const receiverIds = receivers.map(participant => participant.authId);
+    const callerIds = callers.map(participant => participant.authId);
 
     const remainingReceivers = await prisma.callParticipant.count({
       where: {
@@ -99,7 +99,7 @@ export const callDecline = eventHandler<TCallDeclinePayload>(
       updatedStatus = updatedCall.status;
     }
 
-    emitToParticipants(receiverIds, "callDeclined", {
+    emitToParticipants(callerIds, "callDeclined", {
       callId: call.id,
       status: updatedStatus,
     });
