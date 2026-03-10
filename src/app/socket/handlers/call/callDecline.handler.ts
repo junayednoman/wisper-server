@@ -1,10 +1,10 @@
 import { CallParticipantStatus, CallRole, CallStatus } from "@prisma/client";
-import ApiError from "../../middlewares/classes/ApiError";
-import prisma from "../../utils/prisma";
-import { TAckFn, TSocket } from "../interface/socket.interface";
-import ackHandler from "../utils/ackHandler";
-import eventHandler from "../utils/eventHandler";
-import onlineUsers from "../utils/onlineUsers";
+import ApiError from "../../../middlewares/classes/ApiError";
+import prisma from "../../../utils/prisma";
+import { TAckFn, TSocket } from "../../interface/socket.interface";
+import ackHandler from "../../utils/ackHandler";
+import eventHandler from "../../utils/eventHandler";
+import onlineUsers from "../../utils/onlineUsers";
 
 type TCallDeclinePayload = {
   callId: string;
@@ -110,3 +110,4 @@ export const callDecline = eventHandler<TCallDeclinePayload>(
     });
   }
 );
+

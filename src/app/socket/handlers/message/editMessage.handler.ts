@@ -1,10 +1,10 @@
-import prisma from "../../utils/prisma";
-import { TDeleteMessage } from "../interface/message.interface";
-import { TAckFn, TSocket } from "../interface/socket.interface";
-import ackHandler from "../utils/ackHandler";
-import eventHandler from "../utils/eventHandler";
+import prisma from "../../../utils/prisma";
+import { TEditMessage } from "../../interface/message.interface";
+import { TAckFn, TSocket } from "../../interface/socket.interface";
+import ackHandler from "../../utils/ackHandler";
+import eventHandler from "../../utils/eventHandler";
 
-const deleteMessage = eventHandler<TDeleteMessage>(
+const editMessage = eventHandler<TEditMessage>(
   async (socket: TSocket, data, ack: TAckFn) => {
     const authId = socket.auth.id;
 
@@ -15,13 +15,14 @@ const deleteMessage = eventHandler<TDeleteMessage>(
     });
 
     if (message.senderId !== authId) {
-      ackHandler(ack, { success: false, message: "Unauthorized to delete!" });
+      ackHandler(ack, { success: false, message: "Unauthorized to edit!" });
     }
 
-    await prisma.message.delete({
+    await prisma.message.update({
       where: {
         id: data.messageId,
       },
+      data: data.payload,
     });
 
     const newMessages = await prisma.message.findMany({
@@ -57,7 +58,7 @@ const deleteMessage = eventHandler<TDeleteMessage>(
         createdAt: true,
       },
       orderBy: {
-        createdAt: "asc",
+        createdAt: "desc",
       },
       take: 1,
     });
@@ -67,4 +68,5 @@ const deleteMessage = eventHandler<TDeleteMessage>(
   }
 );
 
-export default deleteMessage;
+export default editMessage;
+

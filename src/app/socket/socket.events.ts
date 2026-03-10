@@ -1,16 +1,16 @@
 import { Socket } from "socket.io";
-import { sendMessage } from "./handlers/sendMessage.handler";
-import startTyping from "./handlers/startTyping.handler";
-import stopTyping from "./handlers/stopTyping";
+import { sendMessage } from "./handlers/message/sendMessage.handler";
+import startTyping from "./handlers/message/startTyping.handler";
+import stopTyping from "./handlers/message/stopTyping";
 import disconnect from "./handlers/disconnect.handler";
-import editMessage from "./handlers/editMessage.handler";
-import deleteMessage from "./handlers/deleteMessage.handler";
-import { seenMessage } from "./handlers/seenMessage.handler";
-import { callInvite } from "./handlers/callInvite.handler";
-import { callAccept } from "./handlers/callAccept.handler";
-import { callDecline } from "./handlers/callDecline.handler";
-import { callCancel } from "./handlers/callCancel.handler";
-import { callEnd } from "./handlers/callEnd.handler";
+import editMessage from "./handlers/message/editMessage.handler";
+import deleteMessage from "./handlers/message/deleteMessage.handler";
+import { seenMessage } from "./handlers/message/seenMessage.handler";
+import { callInvite } from "./handlers/call/callInvite.handler";
+import { callAccept } from "./handlers/call/callAccept.handler";
+import { callDecline } from "./handlers/call/callDecline.handler";
+import { callCancel } from "./handlers/call/callCancel.handler";
+import { callEnd } from "./handlers/call/callEnd.handler";
 
 export const registerSocketEvents = (socket: Socket) => {
   socket.on("sendMessage", sendMessage);

@@ -1,8 +1,8 @@
-import { messageService } from "../../modules/message/message.service";
-import prisma from "../../utils/prisma";
-import { TSeenMessage } from "../interface/message.interface";
-import { TSocket } from "../interface/socket.interface";
-import eventHandler from "../utils/eventHandler";
+import { messageService } from "../../../modules/message/message.service";
+import prisma from "../../../utils/prisma";
+import { TSeenMessage } from "../../interface/message.interface";
+import { TSocket } from "../../interface/socket.interface";
+import eventHandler from "../../utils/eventHandler";
 
 export const seenMessage = eventHandler<TSeenMessage>(
   async (socket: TSocket, data) => {
@@ -52,3 +52,4 @@ export const seenMessage = eventHandler<TSeenMessage>(
     socket.emit("newMessage", newMessages[0]);
   }
 );
+

@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import { registerSocketEvents } from "./socket.events";
 import { socketAuth } from "./utils/socket.auth";
-import { joinChatHandler } from "./handlers/joinChat.handler";
+import { joinChatHandler } from "./handlers/message/joinChat.handler";
 import { TSocket } from "./interface/socket.interface";
 import onlineUsers from "./utils/onlineUsers";
 

@@ -1,8 +1,8 @@
 import { ChatType } from "@prisma/client";
-import { chatService } from "../../modules/chat/chat.service";
-import { TSocket } from "../interface/socket.interface";
-import { handleSocketError } from "../utils/handleSocketError";
-import onlineUsers from "../utils/onlineUsers";
+import { chatService } from "../../../modules/chat/chat.service";
+import { TSocket } from "../../interface/socket.interface";
+import { handleSocketError } from "../../utils/handleSocketError";
+import onlineUsers from "../../utils/onlineUsers";
 
 export const joinChatHandler = async (socket: TSocket) => {
   try {
@@ -37,3 +37,4 @@ export const joinChatHandler = async (socket: TSocket) => {
     handleSocketError(err, socket);
   }
 };
+

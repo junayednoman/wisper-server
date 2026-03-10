@@ -1,9 +1,9 @@
-import prisma from "../../utils/prisma";
-import { TAckFn, TSocket } from "../interface/socket.interface";
-import { TTypingPayload } from "../interface/startTyping.interface";
-import eventHandler from "../utils/eventHandler";
-import onlineUsers from "../utils/onlineUsers";
-import typingState from "../utils/typingState";
+import prisma from "../../../utils/prisma";
+import { TAckFn, TSocket } from "../../interface/socket.interface";
+import { TTypingPayload } from "../../interface/startTyping.interface";
+import eventHandler from "../../utils/eventHandler";
+import onlineUsers from "../../utils/onlineUsers";
+import typingState from "../../utils/typingState";
 
 const stopTyping = eventHandler<TTypingPayload>(
   async (socket: TSocket, data, _ack: TAckFn) => {
@@ -33,3 +33,4 @@ const stopTyping = eventHandler<TTypingPayload>(
 );
 
 export default stopTyping;
+
