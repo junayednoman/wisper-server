@@ -20,7 +20,7 @@ const getFirebaseCredential = () => {
     return admin.credential.cert(JSON.parse(raw));
   }
 
-  throw new ApiError(500, "Firebase service account is not configured.");
+  console.log("Firebase service account is not configured.");
 };
 
 if (!admin.apps.length) {
