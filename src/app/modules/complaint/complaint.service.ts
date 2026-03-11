@@ -187,14 +187,11 @@ const changeComplaintStatus = async (id: string, status: ComplaintStatus) => {
     },
   });
 
-  if (
-    result.status === ComplaintStatus.RESOLVED ||
-    result.status === ComplaintStatus.REJECTED
-  ) {
+  if (result.status === ComplaintStatus.RESOLVED) {
     await sendNotificationToUser(
       result.complainantId,
       "Complaint update",
-      `Your complaint was ${result.status.toLowerCase()}.`
+      "Your complaint was resolved."
     );
   }
 
