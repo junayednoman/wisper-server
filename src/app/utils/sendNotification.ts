@@ -12,21 +12,29 @@ type TNotificationPayload = {
 
 const getFirebaseCredential = () => {
   const filePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (filePath) {
-    const absolutePath = path.isAbsolute(filePath)
-      ? filePath
-      : path.join(process.cwd(), filePath);
-    const raw = fs.readFileSync(absolutePath, "utf8");
-    return admin.credential.cert(JSON.parse(raw));
+  if (!filePath) {
+    return null;
   }
 
-  console.log("Firebase service account is not configured.");
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.join(process.cwd(), filePath);
+
+  if (!fs.existsSync(absolutePath)) {
+    return null;
+  }
+
+  const raw = fs.readFileSync(absolutePath, "utf8");
+  return admin.credential.cert(JSON.parse(raw));
 };
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: getFirebaseCredential(),
-  });
+  const credential = getFirebaseCredential();
+  if (credential) {
+    admin.initializeApp({
+      credential,
+    });
+  }
 }
 
 export const sendNotification = async (
@@ -36,6 +44,7 @@ export const sendNotification = async (
 ): Promise<any> => {
   try {
     if (!fcmToken?.length) return null;
+    if (!admin.apps.length) return null;
 
     const dataPayload: Record<string, string> | undefined = extraData
       ? Object.fromEntries(
