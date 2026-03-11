@@ -24,8 +24,18 @@ const getFirebaseCredential = () => {
     return null;
   }
 
-  const raw = fs.readFileSync(absolutePath, "utf8");
-  return admin.credential.cert(JSON.parse(raw));
+  try {
+    const raw = fs.readFileSync(absolutePath, "utf8");
+    const json = JSON.parse(raw);
+
+    if (typeof json?.project_id !== "string") {
+      return null;
+    }
+
+    return admin.credential.cert(json);
+  } catch {
+    return null;
+  }
 };
 
 if (!admin.apps.length) {
