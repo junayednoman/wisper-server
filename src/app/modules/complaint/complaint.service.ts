@@ -5,6 +5,7 @@ import {
 } from "../../utils/paginationCalculation";
 import prisma from "../../utils/prisma";
 import { TComplaint } from "./complaint.validation";
+import { sendNotificationToUser } from "../../utils/sendNotification";
 
 const createComplaint = async (userId: string, payload: TComplaint) => {
   if (payload.postId) {
@@ -179,7 +180,23 @@ const changeComplaintStatus = async (id: string, status: ComplaintStatus) => {
     data: {
       status,
     },
+    select: {
+      id: true,
+      status: true,
+      complainantId: true,
+    },
   });
+
+  if (
+    result.status === ComplaintStatus.RESOLVED ||
+    result.status === ComplaintStatus.REJECTED
+  ) {
+    await sendNotificationToUser(
+      result.complainantId,
+      "Complaint update",
+      `Your complaint was ${result.status.toLowerCase()}.`
+    );
+  }
 
   return result;
 };

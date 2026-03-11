@@ -5,11 +5,15 @@ import {
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
 import ApiError from "../../middlewares/classes/ApiError";
+import { sendNotificationToUser } from "../../utils/sendNotification";
 
 const addComment = async (userId: string, postId: string, payload: Comment) => {
-  await prisma.post.findUniqueOrThrow({
+  const post = await prisma.post.findUniqueOrThrow({
     where: {
       id: postId,
+    },
+    select: {
+      authorId: true,
     },
   });
 
@@ -17,6 +21,15 @@ const addComment = async (userId: string, postId: string, payload: Comment) => {
   payload.postId = postId;
 
   const result = await prisma.comment.create({ data: payload });
+
+  if (post.authorId !== userId) {
+    await sendNotificationToUser(
+      post.authorId,
+      "New comment",
+      "Someone commented on your post."
+    );
+  }
+
   return result;
 };
 

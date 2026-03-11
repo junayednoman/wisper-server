@@ -79,4 +79,33 @@ export const sendNotification = async (
   }
 };
 
+export const sendNotificationToUser = async (
+  receiverId: string,
+  title: string,
+  body: string,
+  extraData?: Record<string, any>
+): Promise<any> => {
+  const auth = await prisma.auth.findUnique({
+    where: {
+      id: receiverId,
+    },
+    select: {
+      fcmToken: true,
+      allowNotifications: true,
+    },
+  });
+
+  if (!auth?.fcmToken || auth.allowNotifications === false) return null;
+
+  return sendNotification(
+    [auth.fcmToken],
+    {
+      receiverId,
+      title,
+      body,
+    },
+    extraData
+  );
+};
+
 export const firebaseAdmin = admin;

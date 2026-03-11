@@ -1,10 +1,12 @@
 import { chatService } from "../../../modules/chat/chat.service";
 import { messageService } from "../../../modules/message/message.service";
 import prisma from "../../../utils/prisma";
+import { sendNotificationToUser } from "../../../utils/sendNotification";
 import { TMessagePayload } from "../../interface/message.interface";
 import { TAckFn, TSocket } from "../../interface/socket.interface";
 import ackHandler from "../../utils/ackHandler";
 import eventHandler from "../../utils/eventHandler";
+import onlineUsers from "../../utils/onlineUsers";
 
 export const sendMessage = eventHandler<TMessagePayload>(
   async (socket: TSocket, data, ack: TAckFn) => {
@@ -61,6 +63,34 @@ export const sendMessage = eventHandler<TMessagePayload>(
 
     socket.to(data.chatId).emit("newMessage", messages[0]);
     socket.emit("newMessage", messages[0]);
+
+    const participants = await prisma.chatParticipant.findMany({
+      where: {
+        chatId: data.chatId,
+      },
+      select: {
+        authId: true,
+      },
+    });
+
+    const recipientIds = participants
+      .map(participant => participant.authId)
+      .filter(participantId => participantId !== authId);
+
+    const offlineIds = recipientIds.filter(
+      participantId => !onlineUsers[participantId]
+    );
+
+    await Promise.all(
+      offlineIds.map(receiverId =>
+        sendNotificationToUser(
+          receiverId,
+          "New message",
+          "You have a new message.",
+          { chatId: data.chatId }
+        )
+      )
+    );
 
     ackHandler(ack, {
       success: true,

@@ -5,6 +5,7 @@ import { TCreatePaymentSession } from "./boost.validation";
 import ApiError from "../../middlewares/classes/ApiError";
 import { generateTransactionId } from "../../utils/generateTransactionId";
 import { BoostStatus } from "@prisma/client";
+import { sendNotificationToUser } from "../../utils/sendNotification";
 
 const stripe = new Stripe(config.payment.secret_key as string, {
   apiVersion: "2025-11-17.clover",
@@ -113,7 +114,27 @@ const paymentCallback = async (query: Record<string, any>) => {
       await tn.payment.create({ data: paymentPayload });
       await tn.boost.create({ data: parsedBoostPayload });
     });
+
+    if (authId) {
+      await sendNotificationToUser(
+        authId,
+        "Payment successful",
+        "Your payment was successful."
+      );
+      await sendNotificationToUser(
+        authId,
+        "Boost active",
+        "Your boost is now active."
+      );
+    }
   } else {
+    if (authId) {
+      await sendNotificationToUser(
+        authId,
+        "Payment failed",
+        "Your payment failed."
+      );
+    }
     throw new ApiError(400, "Payment failed!");
   }
 };

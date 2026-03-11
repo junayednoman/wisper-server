@@ -6,11 +6,54 @@ import {
 } from "../../utils/paginationCalculation";
 import { jobFilterableFields, jobSearchableFields } from "./job.constant";
 import ApiError from "../../middlewares/classes/ApiError";
+import { sendNotificationToUser } from "../../utils/sendNotification";
 
 const createJob = async (userId: string, payload: Job) => {
   payload.authorId = userId;
 
   const result = await prisma.job.create({ data: payload });
+
+  if (payload.industry) {
+    const recipients = await prisma.auth.findMany({
+      where: {
+        id: {
+          not: userId,
+        },
+        OR: [
+          {
+            person: {
+              industry: {
+                contains: payload.industry,
+                mode: "insensitive",
+              },
+            },
+          },
+          {
+            business: {
+              industry: {
+                contains: payload.industry,
+                mode: "insensitive",
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    await Promise.all(
+      recipients.map(recipient =>
+        sendNotificationToUser(
+          recipient.id,
+          "New job posted",
+          "A new job was posted in your industry."
+        )
+      )
+    );
+  }
+
   return result;
 };
 

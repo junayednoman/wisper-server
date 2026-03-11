@@ -5,6 +5,7 @@ import {
   calculatePagination,
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
+import { sendNotificationToUser } from "../../utils/sendNotification";
 
 const sendConnectionRequest = async (authId: string, payload: Connection) => {
   payload.requesterId = authId;
@@ -25,6 +26,13 @@ const sendConnectionRequest = async (authId: string, payload: Connection) => {
 
   if (existingConnection) throw new ApiError(400, "Connection already exists!");
   const result = await prisma.connection.create({ data: payload });
+
+  await sendNotificationToUser(
+    payload.receiverId,
+    "Connection request",
+    "You have a new connection request."
+  );
+
   return result;
 };
 
@@ -162,6 +170,14 @@ const acceptOrRejectConnection = async (
       status: status,
     },
   });
+
+  await sendNotificationToUser(
+    connection.requesterId,
+    "Connection request",
+    status === "ACCEPTED"
+      ? "Your connection request was accepted."
+      : "Your connection request was rejected."
+  );
 
   const message = `Connection request ${status} successfully!`;
   return { result, message };

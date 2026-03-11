@@ -1,9 +1,13 @@
 import prisma from "../../utils/prisma";
+import { sendNotificationToUser } from "../../utils/sendNotification";
 
 const addRemoveReaction = async (postId: string, authId: string) => {
-  await prisma.post.findUniqueOrThrow({
+  const post = await prisma.post.findUniqueOrThrow({
     where: {
       id: postId,
+    },
+    select: {
+      authorId: true,
     },
   });
 
@@ -31,6 +35,14 @@ const addRemoveReaction = async (postId: string, authId: string) => {
     const result = await prisma.reaction.create({
       data: reactionPayload,
     });
+
+    if (post.authorId !== authId) {
+      await sendNotificationToUser(
+        post.authorId,
+        "New reaction",
+        "Someone liked your post."
+      );
+    }
 
     const message = "Reaction added successfully!";
     return { result, message };

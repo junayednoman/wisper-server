@@ -1,5 +1,6 @@
 import { Recommendation, UserRole } from "@prisma/client";
 import prisma from "../../utils/prisma";
+import { sendNotificationToUser } from "../../utils/sendNotification";
 
 const giveRecommendation = async (payload: Recommendation, authId: string) => {
   if (payload.receiverId) {
@@ -19,6 +20,15 @@ const giveRecommendation = async (payload: Recommendation, authId: string) => {
   payload.giverId = authId;
 
   const result = await prisma.recommendation.create({ data: payload });
+
+  if (payload.receiverId) {
+    await sendNotificationToUser(
+      payload.receiverId,
+      "New recommendation",
+      "You received a new recommendation."
+    );
+  }
+
   return result;
 };
 
