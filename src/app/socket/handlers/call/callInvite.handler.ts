@@ -10,6 +10,7 @@ type TCallInvitePayload = {
   callId: string;
   token: string;
   groupName: string | null;
+  groupImage: string | null;
 };
 
 const emitToParticipants = (
@@ -109,6 +110,7 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       callerName,
       callerImage,
       groupName: data.groupName,
+      groupImage: data.groupImage,
     });
 
     ackHandler(ack, {
