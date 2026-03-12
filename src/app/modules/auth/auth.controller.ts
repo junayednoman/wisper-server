@@ -112,6 +112,7 @@ const toggleNotificationPermission = handleAsyncRequest(
   }
 );
 
+
 const logout = handleAsyncRequest(async (_req: Request, res: Response) => {
   res.clearCookie("wisperRefreshToken", { httpOnly: true });
   sendResponse(res, {

@@ -81,14 +81,25 @@ export const sendMessage = eventHandler<TMessagePayload>(
       participantId => !onlineUsers[participantId]
     );
 
+    const senderName =
+      messages[0]?.sender?.person?.name ||
+      messages[0]?.sender?.business?.name ||
+      "New message";
+
+    const getSnippet = (text?: string | null) => {
+      if (!text) return "Sent a file.";
+      const words = text.trim().split(/\s+/);
+      const snippet = words.slice(0, 12).join(" ");
+      return words.length > 12 ? `${snippet}...` : snippet;
+    };
+
+    const messageSnippet = getSnippet(messages[0]?.text);
+
     await Promise.all(
       offlineIds.map(receiverId =>
-        sendNotificationToUser(
-          receiverId,
-          "New message",
-          "You have a new message.",
-          { chatId: data.chatId }
-        )
+        sendNotificationToUser(receiverId, senderName, messageSnippet, {
+          chatId: data.chatId,
+        })
       )
     );
 
@@ -98,4 +109,3 @@ export const sendMessage = eventHandler<TMessagePayload>(
     });
   }
 );
-

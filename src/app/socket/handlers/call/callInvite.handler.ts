@@ -1,6 +1,10 @@
 import { CallParticipantStatus, CallRole, CallStatus } from "@prisma/client";
+import { RtcRole, RtcTokenBuilder } from "agora-access-token";
+import { createHash } from "crypto";
 import ApiError from "../../../middlewares/classes/ApiError";
 import prisma from "../../../utils/prisma";
+import config from "../../../config";
+import { sendDataMessageToToken } from "../../../utils/sendNotification";
 import { TAckFn, TSocket } from "../../interface/socket.interface";
 import ackHandler from "../../utils/ackHandler";
 import eventHandler from "../../utils/eventHandler";
@@ -26,6 +30,36 @@ const emitToParticipants = (
   });
 };
 
+const getNumericAgoraUid = (userId: string) => {
+  const hash = createHash("sha256").update(userId).digest();
+  const uid = hash.readUInt32BE(0);
+  return uid === 0 ? 1 : uid;
+};
+
+const buildAgoraToken = (userId: string, roomId: string) => {
+  const appId = config.agora.appId;
+  const appCertificate = config.agora.appCertificate;
+
+  if (!appId || !appCertificate) {
+    throw new ApiError(500, "Agora credentials are not configured.");
+  }
+
+  const expireSeconds = Number(config.agora.tokenExpireSeconds ?? "3600");
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const privilegeExpiredTs = currentTimestamp + expireSeconds;
+  const role = RtcRole.PUBLISHER;
+  const uid = getNumericAgoraUid(userId);
+
+  return RtcTokenBuilder.buildTokenWithUid(
+    appId,
+    appCertificate,
+    roomId,
+    uid,
+    role,
+    privilegeExpiredTs
+  );
+};
+
 export const callInvite = eventHandler<TCallInvitePayload>(
   async (socket: TSocket, data, ack: TAckFn) => {
     const authId = socket.auth.id;
@@ -41,6 +75,8 @@ export const callInvite = eventHandler<TCallInvitePayload>(
             role: true,
             auth: {
               select: {
+                fcmToken: true,
+                deviceType: true,
                 person: {
                   select: {
                     name: true,
@@ -96,9 +132,9 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       .map(participant => participant.authId);
 
     const callerName =
-      caller?.auth?.person?.name ?? caller?.auth?.business?.name;
+      caller?.auth?.person?.name || caller?.auth?.business?.name || "Caller";
     const callerImage =
-      caller?.auth?.person?.image ?? caller?.auth?.business?.image;
+      caller?.auth?.person?.image || caller?.auth?.business?.image || "";
 
     emitToParticipants(participantIds, "callIncoming", {
       callId: call.id,
@@ -112,6 +148,28 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       groupName: data.groupName,
       groupImage: data.groupImage,
     });
+
+    await Promise.all(
+      call.participants
+        .filter(participant => participant.role === CallRole.RECEIVER)
+        .map(participant => {
+          const receiverToken = participant.auth?.fcmToken;
+          const deviceType = participant.auth?.deviceType;
+          if (!receiverToken || deviceType === "ios") return null;
+
+          const agoraToken = buildAgoraToken(participant.authId, call.roomId);
+
+          return sendDataMessageToToken(receiverToken, {
+            type: "incoming_call",
+            call_id: call.id,
+            caller_name: callerName,
+            caller_image: callerImage,
+            call_type: call.type,
+            channel_name: call.roomId,
+            agora_token: agoraToken,
+          });
+        })
+    );
 
     ackHandler(ack, {
       success: true,

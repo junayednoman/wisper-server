@@ -17,6 +17,8 @@ model Auth {
   loginProvider           LoginProvider            @default(EMAIL)
   allowNotifications      Boolean                  @default(true)
   fcmToken                String?
+  voipToken               String?
+  deviceType              String?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   otp                     Otp?

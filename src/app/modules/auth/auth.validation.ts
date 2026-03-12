@@ -6,6 +6,8 @@ export const loginZodSchema = z.object({
   email: emailZod,
   password: passwordZod,
   fcmToken: z.string().optional(),
+  voipToken: z.string().optional(),
+  deviceType: z.enum(["android", "ios"]).optional(),
   isMobileApp: z.boolean().default(false),
 });
 
@@ -16,6 +18,8 @@ export const googleLoginSchema = z.object({
   name: z.string(),
   image: z.string(),
   fcmToken: z.string(),
+  voipToken: z.string().optional(),
+  deviceType: z.enum(["android", "ios"]).optional(),
   role: z.enum(["PERSON", "BUSINESS"]),
 });
 

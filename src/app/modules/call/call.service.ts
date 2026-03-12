@@ -66,6 +66,7 @@ const createCall = async (userId: string, payload: TCall) => {
 
     return newCall;
   });
+
   return result;
 };
 

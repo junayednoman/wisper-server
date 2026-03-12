@@ -67,14 +67,16 @@ const login = async (payload: TLoginInput) => {
     }
   );
 
-  // update fcmToken if any
-  if (payload.fcmToken) {
+  // update device tokens if any
+  if (payload.fcmToken || payload.voipToken || payload.deviceType) {
     await prisma.auth.update({
       where: {
         email: payload.email,
       },
       data: {
         fcmToken: payload.fcmToken,
+        voipToken: payload.voipToken,
+        deviceType: payload.deviceType,
       },
     });
   }
@@ -115,6 +117,8 @@ const googleLogin = async (payload: TGoogleLoginInput) => {
       },
       data: {
         fcmToken: payload.fcmToken,
+        voipToken: payload.voipToken,
+        deviceType: payload.deviceType,
       },
     });
   } else {
@@ -123,6 +127,8 @@ const googleLogin = async (payload: TGoogleLoginInput) => {
       password: "",
       loginProvider: LoginProvider.GOOGLE,
       fcmToken: payload.fcmToken,
+      voipToken: payload.voipToken,
+      deviceType: payload.deviceType,
       role: payload.role,
       status: UserStatus.ACTIVE,
     };
@@ -458,6 +464,7 @@ const toggleNotificationPermission = async (id: string) => {
   });
   return result;
 };
+
 
 export const authServices = {
   login,

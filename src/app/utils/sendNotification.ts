@@ -9,6 +9,16 @@ type TNotificationPayload = {
   body: string;
 };
 
+const normalizeDataPayload = (data?: Record<string, any>) => {
+  if (!data) return undefined;
+  return Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [
+      key,
+      value === undefined || value === null ? "" : String(value),
+    ])
+  );
+};
+
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as any),
@@ -23,14 +33,7 @@ export const sendNotification = async (
   try {
     if (!fcmToken?.length) return null;
 
-    const dataPayload: Record<string, string> | undefined = extraData
-      ? Object.fromEntries(
-          Object.entries(extraData).map(([key, value]) => [
-            key,
-            value === undefined || value === null ? "" : String(value),
-          ])
-        )
-      : undefined;
+    const dataPayload = normalizeDataPayload(extraData);
 
     const response = await admin.messaging().sendEachForMulticast({
       tokens: fcmToken,
@@ -63,6 +66,21 @@ export const sendNotification = async (
       throw new ApiError(500, error.message || "Failed to send notification");
     }
   }
+};
+
+export const sendDataMessageToToken = async (
+  fcmToken: string,
+  data: Record<string, any>
+) => {
+  if (!fcmToken) return null;
+  const payload = normalizeDataPayload(data);
+  return admin.messaging().send({
+    token: fcmToken,
+    data: payload,
+    android: {
+      priority: "high",
+    },
+  });
 };
 
 export const sendNotificationToUser = async (
