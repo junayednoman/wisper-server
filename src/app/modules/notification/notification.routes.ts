@@ -13,6 +13,12 @@ router.post(
   notificationController.createNotification
 );
 
+router.post(
+  "/test",
+  authorize(UserRole.PERSON, UserRole.BUSINESS, UserRole.ADMIN),
+  notificationController.testPushNotification
+);
+
 router.get(
   "/",
   authorize(UserRole.PERSON, UserRole.BUSINESS, UserRole.ADMIN),

@@ -3,6 +3,7 @@ import handleAsyncRequest from "../../utils/handleAsyncRequest";
 import pick from "../../utils/pick";
 import { sendResponse } from "../../utils/sendResponse";
 import { notificationService } from "./notification.service";
+import { sendNotificationToUser } from "../../utils/sendNotification";
 
 const createNotification = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await notificationService.createNotification(req.user!.id);
@@ -58,10 +59,22 @@ const deleteNotifications = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const testPushNotification = handleAsyncRequest(async (req: TRequest, res) => {
+  const title = req.body?.title || "Test notification";
+  const body = req.body?.body || "This is a test push notification.";
+
+  const result = await sendNotificationToUser(req.user!.id, title, body);
+  sendResponse(res, {
+    message: "Test notification sent!",
+    data: result,
+  });
+});
+
 export const notificationController = {
   createNotification,
   getUnseenNotificationCount,
   getNotifications,
   seenNotifications,
   deleteNotifications,
+  testPushNotification,
 };

@@ -1,8 +1,7 @@
 import admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
 import ApiError from "../middlewares/classes/ApiError";
 import prisma from "./prisma";
+import serviceAccount from "../private/firebase-service.json";
 
 type TNotificationPayload = {
   receiverId: string;
@@ -10,41 +9,10 @@ type TNotificationPayload = {
   body: string;
 };
 
-const getFirebaseCredential = () => {
-  const filePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (!filePath) {
-    return null;
-  }
-
-  const absolutePath = path.isAbsolute(filePath)
-    ? filePath
-    : path.join(process.cwd(), filePath);
-
-  if (!fs.existsSync(absolutePath)) {
-    return null;
-  }
-
-  try {
-    const raw = fs.readFileSync(absolutePath, "utf8");
-    const json = JSON.parse(raw);
-
-    if (typeof json?.project_id !== "string") {
-      return null;
-    }
-
-    return admin.credential.cert(json);
-  } catch {
-    return null;
-  }
-};
-
 if (!admin.apps.length) {
-  const credential = getFirebaseCredential();
-  if (credential) {
-    admin.initializeApp({
-      credential,
-    });
-  }
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount as any),
+  });
 }
 
 export const sendNotification = async (
@@ -54,7 +22,6 @@ export const sendNotification = async (
 ): Promise<any> => {
   try {
     if (!fcmToken?.length) return null;
-    if (!admin.apps.length) return null;
 
     const dataPayload: Record<string, string> | undefined = extraData
       ? Object.fromEntries(

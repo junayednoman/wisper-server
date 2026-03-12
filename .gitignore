@@ -3,4 +3,4 @@ node_modules
 dist
 /generated/prisma
 createModule.js
-google-services.json
+firebase-service.json
