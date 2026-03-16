@@ -13,6 +13,7 @@ import onlineUsers from "../../utils/onlineUsers";
 type TCallInvitePayload = {
   callId: string;
   token: string;
+  groupId: string;
   groupName: string | null;
   groupImage: string | null;
 };
@@ -136,6 +137,56 @@ export const callInvite = eventHandler<TCallInvitePayload>(
     const callerImage =
       caller?.auth?.person?.image || caller?.auth?.business?.image || "";
 
+    const group = await prisma.group.findUnique({
+      where: {
+        id: data.groupId,
+      },
+      include: {
+        chat: {
+          include: {
+            participants: {
+              select: {
+                auth: {
+                  select: {
+                    person: {
+                      select: {
+                        name: true,
+                        image: true,
+                      },
+                    },
+                    business: {
+                      select: {
+                        name: true,
+                        image: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const participants =
+      group?.chat?.participants
+        ?.map(participant => {
+          const name =
+            participant.auth?.person?.name || participant.auth?.business?.name;
+          const image =
+            participant.auth?.person?.image ||
+            participant.auth?.business?.image ||
+            "";
+
+          if (!name) return null;
+
+          return { name, image };
+        })
+        .filter((participant): participant is { name: string; image: string } =>
+          Boolean(participant)
+        ) ?? [];
+
     emitToParticipants(participantIds, "callIncoming", {
       callId: call.id,
       roomId: call.roomId,
@@ -147,6 +198,7 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       callerImage,
       groupName: data.groupName,
       groupImage: data.groupImage,
+      participants,
     });
 
     await Promise.all(

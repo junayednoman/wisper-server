@@ -465,7 +465,6 @@ const toggleNotificationPermission = async (id: string) => {
   return result;
 };
 
-
 export const authServices = {
   login,
   googleLogin,
