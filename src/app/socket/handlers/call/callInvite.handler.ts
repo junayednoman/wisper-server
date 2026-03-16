@@ -13,7 +13,8 @@ import onlineUsers from "../../utils/onlineUsers";
 type TCallInvitePayload = {
   callId: string;
   token: string;
-  groupId: string;
+  groupId?: string;
+  classId?: string;
   groupName: string | null;
   groupImage: string | null;
 };
@@ -137,40 +138,17 @@ export const callInvite = eventHandler<TCallInvitePayload>(
     const callerImage =
       caller?.auth?.person?.image || caller?.auth?.business?.image || "";
 
-    const group = await prisma.group.findUnique({
-      where: {
-        id: data.groupId,
-      },
-      include: {
-        chat: {
-          include: {
-            participants: {
-              select: {
-                auth: {
-                  select: {
-                    person: {
-                      select: {
-                        name: true,
-                        image: true,
-                      },
-                    },
-                    business: {
-                      select: {
-                        name: true,
-                        image: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const participants =
-      group?.chat?.participants
+    const mapParticipants = (
+      chatParticipants:
+        | {
+            auth: {
+              person: { name: string; image: string | null } | null;
+              business: { name: string; image: string | null } | null;
+            } | null;
+          }[]
+        | undefined
+    ) =>
+      chatParticipants
         ?.map(participant => {
           const name =
             participant.auth?.person?.name || participant.auth?.business?.name;
@@ -186,6 +164,78 @@ export const callInvite = eventHandler<TCallInvitePayload>(
         .filter((participant): participant is { name: string; image: string } =>
           Boolean(participant)
         ) ?? [];
+
+    let participants: { name: string; image: string }[] = [];
+
+    if (data.groupId) {
+      const group = await prisma.group.findUnique({
+        where: {
+          id: data.groupId,
+        },
+        include: {
+          chat: {
+            include: {
+              participants: {
+                select: {
+                  auth: {
+                    select: {
+                      person: {
+                        select: {
+                          name: true,
+                          image: true,
+                        },
+                      },
+                      business: {
+                        select: {
+                          name: true,
+                          image: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      participants = mapParticipants(group?.chat?.participants);
+    } else if (data.classId) {
+      const classData = await prisma.class.findUnique({
+        where: {
+          id: data.classId,
+        },
+        include: {
+          chat: {
+            include: {
+              participants: {
+                select: {
+                  auth: {
+                    select: {
+                      person: {
+                        select: {
+                          name: true,
+                          image: true,
+                        },
+                      },
+                      business: {
+                        select: {
+                          name: true,
+                          image: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      participants = mapParticipants(classData?.chat?.participants);
+    }
 
     emitToParticipants(participantIds, "callIncoming", {
       callId: call.id,
