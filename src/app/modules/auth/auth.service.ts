@@ -465,6 +465,18 @@ const toggleNotificationPermission = async (id: string) => {
   return result;
 };
 
+const logout = async (id: string) => {
+  await prisma.auth.update({
+    where: {
+      id,
+    },
+    data: {
+      fcmToken: null,
+    },
+  });
+  return null;
+};
+
 export const authServices = {
   login,
   googleLogin,
@@ -475,4 +487,5 @@ export const authServices = {
   changePassword,
   changeAccountStatus,
   toggleNotificationPermission,
+  logout,
 };

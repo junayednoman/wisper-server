@@ -69,6 +69,10 @@ router.patch(
   authController.toggleNotificationPermission
 );
 
-router.post("/logout", authorize(UserRole.ADMIN), authController.logout);
+router.post(
+  "/logout",
+  authorize(UserRole.ADMIN, UserRole.PERSON, UserRole.BUSINESS),
+  authController.logout
+);
 
 export const authRoutes = router;
