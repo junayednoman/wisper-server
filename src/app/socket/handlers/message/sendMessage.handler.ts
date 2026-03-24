@@ -77,6 +77,21 @@ export const sendMessage = eventHandler<TMessagePayload>(
       .map(participant => participant.authId)
       .filter(participantId => participantId !== authId);
 
+    const onlineRecipientIds = recipientIds.filter(
+      participantId => onlineUsers[participantId]
+    );
+
+    await Promise.all(
+      onlineRecipientIds.map(async receiverId => {
+        const receiverChatList = await chatService.getMyChats(
+          receiverId,
+          {},
+          {}
+        );
+        onlineUsers[receiverId]?.emit("chatList", receiverChatList);
+      })
+    );
+
     const offlineIds = recipientIds.filter(
       participantId => !onlineUsers[participantId]
     );

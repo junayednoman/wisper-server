@@ -52,4 +52,3 @@ export const seenMessage = eventHandler<TSeenMessage>(
     socket.emit("newMessage", newMessages[0]);
   }
 );
-
