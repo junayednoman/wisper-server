@@ -6,6 +6,7 @@ dotenv.config({ path: path.join(process.cwd(), ".env") });
 export default {
   env: process.env.NODE_ENV,
   port: process.env.PORT,
+  generalChatId: process.env.GENERAL_CHAT_ID,
   email: {
     emailSendingApi: process.env.SEND_EMAIL_URL,
   },

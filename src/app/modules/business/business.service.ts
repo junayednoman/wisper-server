@@ -7,6 +7,7 @@ import generateOTP from "../../utils/generateOTP";
 import { sendEmail } from "../../utils/sendEmail";
 import { deleteFromS3, uploadToS3 } from "../../utils/awss3";
 import { TFile } from "../../interface/file.interface";
+import { addUserToGeneralChat } from "../../utils/generalChat";
 
 const signUp = async (payload: TBusinessSignup) => {
   const existingUser = await prisma.auth.findUnique({
@@ -33,7 +34,7 @@ const signUp = async (payload: TBusinessSignup) => {
   const otp = generateOTP();
 
   const result = await prisma.$transaction(async tn => {
-    await tn.auth.upsert({
+    const auth = await tn.auth.upsert({
       where: {
         email: payload.business.email,
       },
@@ -66,6 +67,9 @@ const signUp = async (payload: TBusinessSignup) => {
       update: otpData,
       create: otpData,
     });
+
+    await addUserToGeneralChat(tn, auth.id);
+
     return result;
   });
 

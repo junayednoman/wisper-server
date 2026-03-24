@@ -11,6 +11,7 @@ import {
   calculatePagination,
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
+import { addUserToGeneralChat } from "../../utils/generalChat";
 
 const signUp = async (payload: TPersonSignUp) => {
   const existingUser = await prisma.auth.findUnique({
@@ -36,7 +37,7 @@ const signUp = async (payload: TPersonSignUp) => {
   const otp = generateOTP();
 
   const result = await prisma.$transaction(async tn => {
-    await tn.auth.upsert({
+    const auth = await tn.auth.upsert({
       where: {
         email: payload.person.email,
       },
@@ -69,6 +70,9 @@ const signUp = async (payload: TPersonSignUp) => {
       update: otpData,
       create: otpData,
     });
+
+    await addUserToGeneralChat(tn, auth.id);
+
     return result;
   });
 

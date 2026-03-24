@@ -17,6 +17,7 @@ import {
   calculatePagination,
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
+import { addUserToGeneralChat } from "../../utils/generalChat";
 
 const login = async (payload: TLoginInput) => {
   const auth = await prisma.auth.findUniqueOrThrow({
@@ -121,6 +122,8 @@ const googleLogin = async (payload: TGoogleLoginInput) => {
         deviceType: payload.deviceType,
       },
     });
+
+    await addUserToGeneralChat(prisma, auth.id);
   } else {
     const authData = {
       email: payload.email,
@@ -157,6 +160,8 @@ const googleLogin = async (payload: TGoogleLoginInput) => {
           data: userData,
         });
       }
+
+      await addUserToGeneralChat(tn, auth.id);
     });
   }
 
