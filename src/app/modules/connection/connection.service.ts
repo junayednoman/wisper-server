@@ -45,6 +45,17 @@ const getMyConnections = async (
   const { searchTerm } = query;
   const andConditions: Prisma.ConnectionWhereInput[] = [];
 
+  andConditions.push({
+    OR: [
+      {
+        requesterId: userId,
+      },
+      {
+        receiverId: userId,
+      },
+    ],
+  });
+
   connectionFilterableFields.forEach(field => {
     andConditions.push({
       [field]: {
