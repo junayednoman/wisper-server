@@ -129,6 +129,54 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       image: accepterImage,
     });
 
+    const acceptedParticipants = await prisma.callParticipant.findMany({
+      where: {
+        callId: call.id,
+        status: CallParticipantStatus.INCOMING,
+      },
+      select: {
+        authId: true,
+        auth: {
+          select: {
+            person: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+            business: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const accepted = acceptedParticipants.map(participant => {
+      const name =
+        participant.auth?.person?.name ||
+        participant.auth?.business?.name ||
+        "Participant";
+      const image =
+        participant.auth?.person?.image ||
+        participant.auth?.business?.image ||
+        "";
+      return {
+        userId: participant.authId,
+        uid: getNumericAgoraUid(participant.authId),
+        name,
+        image,
+      };
+    });
+
+    emitToParticipants(participantIds, "callParticipantsAccepted", {
+      callId: call.id,
+      participants: accepted,
+    });
+
     ackHandler(ack, {
       success: true,
       message: "Call accepted.",
