@@ -9,6 +9,7 @@ import onlineUsers from "../../utils/onlineUsers";
 
 type TCallAcceptPayload = {
   callId: string;
+  uid?: number;
 };
 
 const emitToParticipants = (
@@ -121,10 +122,12 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
     const accepterImage =
       accepter?.person?.image || accepter?.business?.image || "";
 
+    const accepterUid = data.uid ?? getNumericAgoraUid(authId);
+
     emitToParticipants(participantIds, "callParticipantJoined", {
       callId: call.id,
       userId: authId,
-      uid: getNumericAgoraUid(authId),
+      uid: accepterUid,
       name: accepterName,
       image: accepterImage,
     });
@@ -166,9 +169,13 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
         participant.auth?.person?.image ||
         participant.auth?.business?.image ||
         "";
+      const uid =
+        participant.authId === authId
+          ? accepterUid
+          : getNumericAgoraUid(participant.authId);
       return {
         userId: participant.authId,
-        uid: getNumericAgoraUid(participant.authId),
+        uid,
         name,
         image,
       };

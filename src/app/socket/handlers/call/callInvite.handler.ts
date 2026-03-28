@@ -237,6 +237,32 @@ export const callInvite = eventHandler<TCallInvitePayload>(
       participants = mapParticipants(classData?.chat?.participants);
     }
 
+    const allParticipantIds = call.participants.map(
+      participant => participant.authId
+    );
+
+    const participantSnapshot = call.participants.map(participant => {
+      const name =
+        participant.auth?.person?.name ||
+        participant.auth?.business?.name ||
+        "User";
+      const image =
+        participant.auth?.person?.image ||
+        participant.auth?.business?.image ||
+        "";
+      return {
+        userId: participant.authId,
+        uid: getNumericAgoraUid(participant.authId),
+        name,
+        image,
+      };
+    });
+
+    emitToParticipants(allParticipantIds, "callParticipantsSnapshot", {
+      callId: call.id,
+      participants: participantSnapshot,
+    });
+
     emitToParticipants(participantIds, "callIncoming", {
       callId: call.id,
       roomId: call.roomId,
