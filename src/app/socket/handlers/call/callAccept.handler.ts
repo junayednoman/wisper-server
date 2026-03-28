@@ -132,7 +132,9 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
     const acceptedParticipants = await prisma.callParticipant.findMany({
       where: {
         callId: call.id,
-        status: CallParticipantStatus.INCOMING,
+        joinedAt: {
+          not: null,
+        },
       },
       select: {
         authId: true,
