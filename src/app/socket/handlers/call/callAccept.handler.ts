@@ -32,6 +32,7 @@ const getNumericAgoraUid = (userId: string) => {
 
 export const callAccept = eventHandler<TCallAcceptPayload>(
   async (socket: TSocket, data, ack: TAckFn) => {
+    console.log("hitting 1");
     const authId = socket.auth.id;
 
     const call = await prisma.call.findUnique({
@@ -48,7 +49,7 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
     });
 
     if (!call) throw new ApiError(404, "Call not found.");
-
+    console.log("hitting 2");
     const isParticipant = call.participants.some(
       participant => participant.authId === authId
     );
@@ -56,7 +57,7 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
     if (!isParticipant) {
       throw new ApiError(403, "You are not a participant of this call.");
     }
-
+    console.log("hitting 3");
     const now = new Date();
 
     await prisma.callParticipant.updateMany({
@@ -70,7 +71,7 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
         leftAt: null,
       },
     });
-
+    console.log("hitting 4");
     const updatedCall = await prisma.call.update({
       where: {
         id: call.id,
@@ -88,13 +89,13 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
         startedAt: true,
       },
     });
-
+    console.log("hitting 5");
     const participantIds = call.participants.map(
       participant => participant.authId
     );
-
+    console.log("hitting 6");
     emitToParticipants(participantIds, "callAccepted", updatedCall);
-
+    console.log("hitting 7");
     const accepter = await prisma.auth.findUnique({
       where: {
         id: authId,
@@ -115,12 +116,12 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
         },
       },
     });
-
+    console.log("hitting 8");
     const accepterName =
       accepter?.person?.name || accepter?.business?.name || "Participant";
     const accepterImage =
       accepter?.person?.image || accepter?.business?.image || "";
-    console.log("hitting here 1");
+    console.log("hitting 9");
     emitToParticipants(participantIds, "callParticipantJoined", {
       callId: call.id,
       userId: authId,
@@ -128,11 +129,10 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       name: accepterName,
       image: accepterImage,
     });
-    console.log("hitting here 2");
+    console.log("hitting 10");
     ackHandler(ack, {
       success: true,
       message: "Call accepted.",
     });
-    console.log("hitting here 3");
   }
 );
