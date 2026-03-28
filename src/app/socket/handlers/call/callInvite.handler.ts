@@ -65,7 +65,7 @@ const buildAgoraToken = (userId: string, roomId: string) => {
 export const callInvite = eventHandler<TCallInvitePayload>(
   async (socket: TSocket, data, ack: TAckFn) => {
     const authId = socket.auth.id;
-    console.log("hitting er");
+
     const call = await prisma.call.findUnique({
       where: {
         id: data.callId,
@@ -272,7 +272,7 @@ export const callInvite = eventHandler<TCallInvitePayload>(
           });
         })
     );
-    console.log("hitting er 2");
+
     ackHandler(ack, {
       success: true,
       message: "Call invitation sent.",
