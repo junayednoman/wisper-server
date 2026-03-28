@@ -120,7 +120,7 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       accepter?.person?.name || accepter?.business?.name || "Participant";
     const accepterImage =
       accepter?.person?.image || accepter?.business?.image || "";
-
+    console.log("hitting here 1");
     emitToParticipants(participantIds, "callParticipantJoined", {
       callId: call.id,
       userId: authId,
@@ -128,10 +128,11 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       name: accepterName,
       image: accepterImage,
     });
-
+    console.log("hitting here 2");
     ackHandler(ack, {
       success: true,
       message: "Call accepted.",
     });
+    console.log("hitting here 3");
   }
 );
