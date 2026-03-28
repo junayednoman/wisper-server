@@ -122,7 +122,31 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
     const accepterImage =
       accepter?.person?.image || accepter?.business?.image || "";
 
-    const accepterUid = data.uid ?? getNumericAgoraUid(authId);
+    const storedParticipant = await prisma.callParticipant.findFirst({
+      where: {
+        callId: call.id,
+        authId,
+      },
+      select: {
+        agoraUid: true,
+      },
+    });
+
+    const accepterUid =
+      data.uid ?? storedParticipant?.agoraUid ?? getNumericAgoraUid(authId);
+
+    if (!storedParticipant?.agoraUid) {
+      await prisma.callParticipant.updateMany({
+        where: {
+          callId: call.id,
+          authId,
+          agoraUid: null,
+        },
+        data: {
+          agoraUid: accepterUid,
+        },
+      });
+    }
 
     emitToParticipants(participantIds, "callParticipantJoined", {
       callId: call.id,
@@ -141,6 +165,7 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       },
       select: {
         authId: true,
+        agoraUid: true,
         auth: {
           select: {
             person: {
@@ -172,7 +197,7 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       const uid =
         participant.authId === authId
           ? accepterUid
-          : getNumericAgoraUid(participant.authId);
+          : (participant.agoraUid ?? getNumericAgoraUid(participant.authId));
       return {
         userId: participant.authId,
         uid,

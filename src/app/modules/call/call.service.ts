@@ -236,6 +236,7 @@ const generateCallToken = async (
         },
         select: {
           id: true,
+          agoraUid: true,
         },
       },
     },
@@ -259,7 +260,21 @@ const generateCallToken = async (
 
   const role = RtcRole.PUBLISHER;
 
-  const uid = getNumericAgoraUid(userId);
+  const existingParticipant = call.participants[0];
+  const uid = existingParticipant?.agoraUid ?? getNumericAgoraUid(userId);
+
+  if (!existingParticipant?.agoraUid) {
+    await prisma.callParticipant.updateMany({
+      where: {
+        callId: call.id,
+        authId: userId,
+        agoraUid: null,
+      },
+      data: {
+        agoraUid: uid,
+      },
+    });
+  }
 
   const token = RtcTokenBuilder.buildTokenWithUid(
     appId,

@@ -420,6 +420,7 @@ model CallParticipant {
   leftAt         DateTime?
   isMuted        Boolean?              @default(false)
   isVideoEnabled Boolean?              @default(true)
+  agoraUid       Int?
 
   @@map("call_participants")
 }

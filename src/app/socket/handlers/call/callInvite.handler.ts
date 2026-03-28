@@ -38,7 +38,7 @@ const getNumericAgoraUid = (userId: string) => {
   return uid === 0 ? 1 : uid;
 };
 
-const buildAgoraToken = (userId: string, roomId: string) => {
+const buildAgoraToken = (userId: string, roomId: string, uid?: number) => {
   const appId = config.agora.appId;
   const appCertificate = config.agora.appCertificate;
 
@@ -50,13 +50,13 @@ const buildAgoraToken = (userId: string, roomId: string) => {
   const currentTimestamp = Math.floor(Date.now() / 1000);
   const privilegeExpiredTs = currentTimestamp + expireSeconds;
   const role = RtcRole.PUBLISHER;
-  const uid = getNumericAgoraUid(userId);
+  const resolvedUid = uid ?? getNumericAgoraUid(userId);
 
   return RtcTokenBuilder.buildTokenWithUid(
     appId,
     appCertificate,
     roomId,
-    uid,
+    resolvedUid,
     role,
     privilegeExpiredTs
   );
@@ -250,13 +250,29 @@ export const callInvite = eventHandler<TCallInvitePayload>(
         participant.auth?.person?.image ||
         participant.auth?.business?.image ||
         "";
+      const uid = getNumericAgoraUid(participant.authId);
       return {
         userId: participant.authId,
-        uid: getNumericAgoraUid(participant.authId),
+        uid,
         name,
         image,
       };
     });
+
+    await Promise.all(
+      call.participants.map(participant =>
+        prisma.callParticipant.updateMany({
+          where: {
+            callId: call.id,
+            authId: participant.authId,
+            agoraUid: null,
+          },
+          data: {
+            agoraUid: getNumericAgoraUid(participant.authId),
+          },
+        })
+      )
+    );
 
     emitToParticipants(allParticipantIds, "callParticipantsSnapshot", {
       callId: call.id,
@@ -285,7 +301,11 @@ export const callInvite = eventHandler<TCallInvitePayload>(
           const deviceType = participant.auth?.deviceType;
           if (!receiverToken || deviceType === "ios") return null;
 
-          const agoraToken = buildAgoraToken(participant.authId, call.roomId);
+          const agoraToken = buildAgoraToken(
+            participant.authId,
+            call.roomId,
+            getNumericAgoraUid(participant.authId)
+          );
 
           return sendDataMessageToToken(receiverToken, {
             type: "incoming_call",
