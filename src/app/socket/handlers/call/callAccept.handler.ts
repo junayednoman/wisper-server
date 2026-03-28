@@ -1,4 +1,5 @@
 import { CallParticipantStatus, CallStatus } from "@prisma/client";
+import { createHash } from "crypto";
 import ApiError from "../../../middlewares/classes/ApiError";
 import prisma from "../../../utils/prisma";
 import { TAckFn, TSocket } from "../../interface/socket.interface";
@@ -21,6 +22,12 @@ const emitToParticipants = (
       participantSocket.emit(event, payload);
     }
   });
+};
+
+const getNumericAgoraUid = (userId: string) => {
+  const hash = createHash("sha256").update(userId).digest();
+  const uid = hash.readUInt32BE(0);
+  return uid === 0 ? 1 : uid;
 };
 
 export const callAccept = eventHandler<TCallAcceptPayload>(
@@ -88,10 +95,43 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
 
     emitToParticipants(participantIds, "callAccepted", updatedCall);
 
+    const accepter = await prisma.auth.findUnique({
+      where: {
+        id: authId,
+      },
+      select: {
+        id: true,
+        person: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+        business: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    const accepterName =
+      accepter?.person?.name || accepter?.business?.name || "Participant";
+    const accepterImage =
+      accepter?.person?.image || accepter?.business?.image || "";
+
+    emitToParticipants(participantIds, "callParticipantJoined", {
+      callId: call.id,
+      userId: authId,
+      uid: getNumericAgoraUid(authId),
+      name: accepterName,
+      image: accepterImage,
+    });
+
     ackHandler(ack, {
       success: true,
       message: "Call accepted.",
     });
   }
 );
-
