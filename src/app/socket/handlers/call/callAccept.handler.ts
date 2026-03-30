@@ -1,11 +1,11 @@
 import { CallParticipantStatus, CallStatus } from "@prisma/client";
-import { createHash } from "crypto";
 import ApiError from "../../../middlewares/classes/ApiError";
 import prisma from "../../../utils/prisma";
 import { TAckFn, TSocket } from "../../interface/socket.interface";
 import ackHandler from "../../utils/ackHandler";
 import eventHandler from "../../utils/eventHandler";
 import onlineUsers from "../../utils/onlineUsers";
+import getNumericAgoraUid from "../../../utils/getNumericAgoraUid";
 
 type TCallAcceptPayload = {
   callId: string;
@@ -23,12 +23,6 @@ const emitToParticipants = (
       participantSocket.emit(event, payload);
     }
   });
-};
-
-const getNumericAgoraUid = (userId: string) => {
-  const hash = createHash("sha256").update(userId).digest();
-  const uid = hash.readUInt32BE(0) % 2147483647;
-  return uid === 0 ? 1 : uid;
 };
 
 export const callAccept = eventHandler<TCallAcceptPayload>(
@@ -154,6 +148,7 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       uid: accepterUid,
       name: accepterName,
       image: accepterImage,
+      callerUid: storedParticipant?.agoraUid ?? getNumericAgoraUid(authId),
     });
 
     const acceptedParticipants = await prisma.callParticipant.findMany({
@@ -206,9 +201,64 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       };
     });
 
+    const callerParticipant = await prisma.callParticipant.findFirst({
+      where: {
+        callId: call.id,
+        role: "CALLER",
+      },
+      select: {
+        authId: true,
+        agoraUid: true,
+        auth: {
+          select: {
+            person: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+            business: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    let callerUid: number | null = null;
+    if (callerParticipant) {
+      const callerUid =
+        callerParticipant.agoraUid ??
+        getNumericAgoraUid(callerParticipant.authId);
+      callerUid = callerUid;
+      const callerName =
+        callerParticipant.auth?.person?.name ||
+        callerParticipant.auth?.business?.name ||
+        "Participant";
+      const callerImage =
+        callerParticipant.auth?.person?.image ||
+        callerParticipant.auth?.business?.image ||
+        "";
+      const alreadyIncluded = accepted.some(
+        participant => participant.userId === callerParticipant.authId
+      );
+      if (!alreadyIncluded) {
+        accepted.push({
+          userId: callerParticipant.authId,
+          uid: callerUid,
+          name: callerName,
+          image: callerImage,
+        });
+      }
+    }
+
     emitToParticipants(participantIds, "callParticipantsAccepted", {
       callId: call.id,
       participants: accepted,
+      callerUid,
     });
 
     ackHandler(ack, {
