@@ -1,6 +1,5 @@
 import { CallParticipantStatus, CallRole, CallStatus } from "@prisma/client";
 import { RtcRole, RtcTokenBuilder } from "agora-access-token";
-import { createHash } from "crypto";
 import ApiError from "../../../middlewares/classes/ApiError";
 import prisma from "../../../utils/prisma";
 import config from "../../../config";
@@ -9,6 +8,7 @@ import { TAckFn, TSocket } from "../../interface/socket.interface";
 import ackHandler from "../../utils/ackHandler";
 import eventHandler from "../../utils/eventHandler";
 import onlineUsers from "../../utils/onlineUsers";
+import getNumericAgoraUid from "../../../utils/getNumericAgoraUid";
 
 type TCallInvitePayload = {
   callId: string;
@@ -30,12 +30,6 @@ const emitToParticipants = (
       participantSocket.emit(event, payload);
     }
   });
-};
-
-const getNumericAgoraUid = (userId: string) => {
-  const hash = createHash("sha256").update(userId).digest();
-  const uid = hash.readUInt32BE(0) % 2147483647;
-  return uid === 0 ? 1 : uid;
 };
 
 const buildAgoraToken = (userId: string, roomId: string, uid?: number) => {

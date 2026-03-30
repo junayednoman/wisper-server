@@ -14,15 +14,8 @@ import {
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
 import config from "../../config";
-import { createHash, randomUUID } from "crypto";
-
-const getNumericAgoraUid = (userId: string) => {
-  // Deterministic uint32 uid so the same user always gets the same Agora uid.
-  const hash = createHash("sha256").update(userId).digest();
-  // Postgres Int is 32-bit signed; keep uid within 1..2147483647
-  const uid = hash.readUInt32BE(0) % 2147483647;
-  return uid === 0 ? 1 : uid;
-};
+import { randomUUID } from "crypto";
+import getNumericAgoraUid from "../../utils/getNumericAgoraUid";
 
 const createCall = async (userId: string, payload: TCall) => {
   for (const participant of payload.participants) {
