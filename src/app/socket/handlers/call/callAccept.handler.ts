@@ -142,13 +142,13 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       });
     }
 
+    // callerUid is resolved below; keep this event focused on accepter for now
     emitToParticipants(participantIds, "callParticipantJoined", {
       callId: call.id,
       userId: authId,
       uid: accepterUid,
       name: accepterName,
       image: accepterImage,
-      callerUid: storedParticipant?.agoraUid ?? getNumericAgoraUid(authId),
     });
 
     const acceptedParticipants = await prisma.callParticipant.findMany({
@@ -230,10 +230,10 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
 
     let callerUid: number | null = null;
     if (callerParticipant) {
-      const callerUid =
+      const callerUidValue =
         callerParticipant.agoraUid ??
         getNumericAgoraUid(callerParticipant.authId);
-      callerUid = callerUid;
+      callerUid = callerUidValue;
       const callerName =
         callerParticipant.auth?.person?.name ||
         callerParticipant.auth?.business?.name ||
@@ -248,7 +248,7 @@ export const callAccept = eventHandler<TCallAcceptPayload>(
       if (!alreadyIncluded) {
         accepted.push({
           userId: callerParticipant.authId,
-          uid: callerUid,
+          uid: callerUidValue,
           name: callerName,
           image: callerImage,
         });
