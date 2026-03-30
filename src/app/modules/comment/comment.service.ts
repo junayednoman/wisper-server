@@ -1,4 +1,4 @@
-import { Comment } from "@prisma/client";
+import { Comment, CommentAccess, ConnectionStatus } from "@prisma/client";
 import prisma from "../../utils/prisma";
 import {
   calculatePagination,
@@ -14,8 +14,29 @@ const addComment = async (userId: string, postId: string, payload: Comment) => {
     },
     select: {
       authorId: true,
+      commentAccess: true,
     },
   });
+
+  if (
+    post.commentAccess === CommentAccess.FOLLOWERS &&
+    post.authorId !== userId
+  ) {
+    const connection = await prisma.connection.findFirst({
+      where: {
+        status: ConnectionStatus.ACCEPTED,
+        OR: [
+          { requesterId: userId, receiverId: post.authorId },
+          { requesterId: post.authorId, receiverId: userId },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (!connection) {
+      throw new ApiError(403, "Only connections can comment on this post.");
+    }
+  }
 
   payload.authorId = userId;
   payload.postId = postId;
