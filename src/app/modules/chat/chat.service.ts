@@ -12,6 +12,7 @@ import {
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
 import onlineUsers from "../../socket/utils/onlineUsers";
+import config from "../../config";
 
 const createChat = async (authId: string, payload: TCreateChatZod) => {
   if (authId == payload.participantId)
@@ -82,6 +83,9 @@ const getMyChats = async (
       none: {
         authId,
       },
+    },
+    NOT: {
+      id: config.generalChatId,
     },
   });
 

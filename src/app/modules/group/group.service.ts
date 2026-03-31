@@ -81,7 +81,11 @@ const getAllGroups = async (
       },
     },
   });
-
+  if (query.isPrivate) {
+    andConditions.push({
+      isPrivate: query.isPrivate,
+    });
+  }
   const whereConditions: Prisma.GroupWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
