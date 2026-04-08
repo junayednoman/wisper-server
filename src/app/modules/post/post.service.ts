@@ -159,6 +159,11 @@ const getFeedPosts = async (userId: string, options: TPaginationOptions) => {
         },
       },
     },
+    _count: {
+      select: {
+        comment: true,
+      },
+    },
   } as const satisfies Prisma.PostSelect;
 
   type FeedPost = Prisma.PostGetPayload<{ select: typeof postSelect }>;
