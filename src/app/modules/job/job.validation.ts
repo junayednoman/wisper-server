@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const createJobSchema = z.object({
+  groupId: z.string().uuid().optional(),
   title: z.string(),
   description: z.string().min(10),
   type: z.enum(["PART_TIME", "FULL_TIME", "CONTRACT"]),

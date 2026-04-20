@@ -26,6 +26,12 @@ router.get(
 );
 
 router.get(
+  "/public",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  groupController.getPublicGroups
+);
+
+router.get(
   "/:id",
   authorize(UserRole.PERSON, UserRole.BUSINESS),
   groupController.getSingleGroup

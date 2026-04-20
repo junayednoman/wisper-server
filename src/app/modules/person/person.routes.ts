@@ -19,6 +19,11 @@ router.get(
   personController.getUserRoles
 );
 router.get(
+  "/roles/group/:groupId",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  personController.getGroupRoles
+);
+router.get(
   "/:id",
   authorize(UserRole.ADMIN, UserRole.PERSON, UserRole.BUSINESS),
   personController.getSingle

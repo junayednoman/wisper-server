@@ -19,6 +19,11 @@ router.get(
   jobController.getAllJobs
 );
 router.get(
+  "/group/:groupId",
+  authorize(UserRole.BUSINESS, UserRole.PERSON),
+  jobController.getGroupJobs
+);
+router.get(
   "/:id",
   authorize(UserRole.BUSINESS, UserRole.PERSON, UserRole.ADMIN),
   jobController.getSingleJob

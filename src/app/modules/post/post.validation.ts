@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const CreatePostZod = z.object({
   caption: z.string().optional(),
+  groupId: z.string().uuid().optional(),
   commentAccess: z.enum(["FOLLOWERS", "EVERYONE"], {
     message: "Comment access must be either FOLLOWERS or EVERYONE",
   }),

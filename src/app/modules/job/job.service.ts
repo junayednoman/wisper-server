@@ -8,8 +8,38 @@ import { jobFilterableFields, jobSearchableFields } from "./job.constant";
 import ApiError from "../../middlewares/classes/ApiError";
 import { sendNotificationToUser } from "../../utils/sendNotification";
 
+const ensureGroupMembership = async (groupId: string, userId: string) => {
+  const group = await prisma.group.findUniqueOrThrow({
+    where: {
+      id: groupId,
+    },
+    select: {
+      chat: {
+        select: {
+          participants: {
+            where: {
+              authId: userId,
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!(group.chat?.participants.length || 0)) {
+    throw new ApiError(403, "You are not a member of this group!");
+  }
+};
+
 const createJob = async (userId: string, payload: Job) => {
   payload.authorId = userId;
+
+  if (payload.groupId) {
+    await ensureGroupMembership(payload.groupId, userId);
+  }
 
   const result = await prisma.job.create({ data: payload });
 
@@ -152,6 +182,76 @@ const getAllJobs = async (
   return { meta, jobs };
 };
 
+const getGroupJobs = async (
+  groupId: string,
+  userId: string,
+  options: TPaginationOptions
+) => {
+  await ensureGroupMembership(groupId, userId);
+
+  const whereConditions: Prisma.JobWhereInput = {
+    groupId,
+  };
+
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+  const jobs = await prisma.job.findMany({
+    where: whereConditions,
+    skip,
+    take,
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+    select: {
+      id: true,
+      groupId: true,
+      author: {
+        select: {
+          id: true,
+          business: {
+            select: {
+              id: true,
+              name: true,
+              industry: true,
+              address: true,
+              image: true,
+            },
+          },
+        },
+      },
+      group: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      title: true,
+      description: true,
+      salary: true,
+      compensationType: true,
+      experienceLevel: true,
+      qualification: true,
+      responsibilities: true,
+      requirements: true,
+      applicationType: true,
+      locationType: true,
+      location: true,
+      type: true,
+      createdAt: true,
+    },
+  });
+
+  const total = await prisma.job.count({
+    where: whereConditions,
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+
+  return { meta, jobs };
+};
+
 const getSingleJob = async (id: string, userId: string) => {
   const job = await prisma.job.findFirstOrThrow({
     where: {
@@ -170,6 +270,13 @@ const getSingleJob = async (id: string, userId: string) => {
               image: true,
             },
           },
+        },
+      },
+      group: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
         },
       },
     },
@@ -192,6 +299,10 @@ const updateJob = async (id: string, userId: string, payload: Partial<Job>) => {
   });
 
   if (job.authorId !== userId) throw new ApiError(401, "Unauthorized!");
+
+  if (payload.groupId) {
+    await ensureGroupMembership(payload.groupId, userId);
+  }
 
   const result = await prisma.job.update({
     where: {
@@ -222,6 +333,7 @@ const deleteJob = async (id: string, userId: string) => {
 export const jobServices = {
   createJob,
   getAllJobs,
+  getGroupJobs,
   getSingleJob,
   updateJob,
   deleteJob,

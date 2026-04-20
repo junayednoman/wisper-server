@@ -21,6 +21,11 @@ router.get(
   postController.getFeedPosts
 );
 router.get(
+  "/group/:groupId",
+  authorize(UserRole.PERSON, UserRole.BUSINESS),
+  postController.getGroupPosts
+);
+router.get(
   "/single/:id",
   authorize(UserRole.PERSON, UserRole.BUSINESS),
   postController.getSingle

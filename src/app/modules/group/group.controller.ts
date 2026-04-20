@@ -27,6 +27,15 @@ const getAllGroups = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const getPublicGroups = handleAsyncRequest(async (req: TRequest, res) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await groupServices.getPublicGroups(options, req.query, req.user!.id);
+  sendResponse(res, {
+    message: "Public groups retrieved successfully!",
+    data: result,
+  });
+});
+
 const getSingleGroup = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await groupServices.getSingleGroup(req.params.id as string);
   sendResponse(res, {
@@ -118,6 +127,7 @@ const toggleGroupInvitationAccess = handleAsyncRequest(
 export const groupController = {
   createGroup,
   getAllGroups,
+  getPublicGroups,
   getSingleGroup,
   addGroupMember,
   joinGroup,

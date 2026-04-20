@@ -310,6 +310,141 @@ const getUserRoles = async (
   return { meta, roles: mappedRoles };
 };
 
+const getGroupRoles = async (
+  groupId: string,
+  currentAuthId: string,
+  options: TPaginationOptions,
+  query: Record<string, any>
+) => {
+  const group = await prisma.group.findUniqueOrThrow({
+    where: {
+      id: groupId,
+    },
+    select: {
+      chat: {
+        select: {
+          participants: {
+            where: {
+              authId: currentAuthId,
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!(group.chat?.participants.length || 0)) {
+    throw new ApiError(403, "You are not a member of this group!");
+  }
+
+  const andConditions: Prisma.AuthWhereInput[] = [
+    {
+      role: UserRole.PERSON,
+    },
+    {
+      participatedChats: {
+        some: {
+          chat: {
+            groupId,
+          },
+        },
+      },
+    },
+  ];
+
+  if (query.searchTerm) {
+    andConditions.push({
+      person: {
+        OR: [
+          { name: { contains: query.searchTerm, mode: "insensitive" } },
+          { title: { contains: query.searchTerm, mode: "insensitive" } },
+        ],
+      },
+    });
+  }
+
+  const whereConditions: Prisma.AuthWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+  const roles = await prisma.auth.findMany({
+    where: whereConditions,
+    select: {
+      id: true,
+      person: {
+        select: {
+          name: true,
+          image: true,
+          title: true,
+        },
+      },
+      _count: {
+        select: {
+          posts: true,
+          receivedRecommendations: true,
+        },
+      },
+      requestedConnections: {
+        where: {
+          receiverId: currentAuthId,
+        },
+        select: {
+          status: true,
+          requesterId: true,
+        },
+      },
+      receivedConnections: {
+        where: {
+          requesterId: currentAuthId,
+        },
+        select: {
+          status: true,
+          receiverId: true,
+        },
+      },
+    },
+    skip,
+    take,
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+  });
+
+  const mappedRoles = roles.map(user => {
+    const outgoing = user.receivedConnections[0];
+    const incoming = user.requestedConnections[0];
+
+    let connectionStatus = "NOT_CONNECTED";
+
+    if (outgoing) {
+      connectionStatus =
+        outgoing.status === "PENDING" ? "REQUEST_SENT" : outgoing.status;
+    }
+
+    if (incoming) {
+      connectionStatus =
+        incoming.status === "PENDING" ? "REQUEST_RECEIVED" : incoming.status;
+    }
+
+    return {
+      ...user,
+      connectionStatus,
+    };
+  });
+
+  const total = await prisma.auth.count({
+    where: whereConditions,
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+  return { meta, roles: mappedRoles };
+};
+
 export const personServices = {
   signUp,
   getSingle,
@@ -317,4 +452,5 @@ export const personServices = {
   updateMyProfile,
   updateProfileImage,
   getUserRoles,
+  getGroupRoles,
 };

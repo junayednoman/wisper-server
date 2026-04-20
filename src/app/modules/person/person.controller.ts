@@ -75,6 +75,20 @@ const getUserRoles = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const getGroupRoles = handleAsyncRequest(async (req: TRequest, res) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await personServices.getGroupRoles(
+    req.params.groupId as string,
+    req.user!.id,
+    options,
+    req.query
+  );
+  sendResponse(res, {
+    message: "Group roles retrieved successfully!",
+    data: result,
+  });
+});
+
 export const personController = {
   signUp,
   getSingle,
@@ -82,4 +96,5 @@ export const personController = {
   updateMyProfile,
   updateProfileImage,
   getUserRoles,
+  getGroupRoles,
 };

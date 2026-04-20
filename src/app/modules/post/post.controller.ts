@@ -27,6 +27,19 @@ const getFeedPosts = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
+const getGroupPosts = handleAsyncRequest(async (req: TRequest, res) => {
+  const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
+  const result = await PostService.getGroupPosts(
+    req.params.groupId as string,
+    req.user!.id,
+    options
+  );
+  sendResponse(res, {
+    message: "Group posts retrieved successfully!",
+    data: result,
+  });
+});
+
 const getSingle = handleAsyncRequest(async (req: TRequest, res) => {
   const result = await PostService.getSingle(req.params.id as string);
   sendResponse(res, {
@@ -108,6 +121,7 @@ const changePostStatus = handleAsyncRequest(async (req: TRequest, res) => {
 export const postController = {
   create,
   getFeedPosts,
+  getGroupPosts,
   getSingle,
   allPosts,
   update,

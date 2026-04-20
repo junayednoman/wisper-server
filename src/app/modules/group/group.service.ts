@@ -124,6 +124,115 @@ const getAllGroups = async (
   return { meta, groups };
 };
 
+const getPublicGroups = async (
+  options: TPaginationOptions,
+  query: Record<string, any>,
+  authId: string
+) => {
+  const andConditions: Prisma.GroupWhereInput[] = [
+    {
+      isPrivate: false,
+    },
+    {
+      NOT: {
+        chat: {
+          is: {
+            participants: {
+              some: {
+                authId,
+              },
+            },
+          },
+        },
+      },
+    },
+  ];
+
+  if (query.searchTerm) {
+    andConditions.push({
+      name: {
+        contains: query.searchTerm,
+        mode: "insensitive",
+      },
+    });
+  }
+
+  const whereConditions: Prisma.GroupWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+
+  const groups = await prisma.group.findMany({
+    where: whereConditions,
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      createdAt: true,
+      chat: {
+        select: {
+          _count: {
+            select: {
+              participants: true,
+            },
+          },
+          participants: {
+            take: 3,
+            orderBy: {
+              joinedAt: "desc",
+            },
+            select: {
+              auth: {
+                select: {
+                  id: true,
+                  person: {
+                    select: {
+                      image: true,
+                    },
+                  },
+                  business: {
+                    select: {
+                      image: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+    skip,
+    take,
+  });
+
+  const total = await prisma.group.count({
+    where: whereConditions,
+  });
+
+  const refinedGroups = groups.map(group => ({
+    id: group.id,
+    name: group.name,
+    image: group.image,
+    createdAt: group.createdAt,
+    memberCount: group.chat?._count.participants || 0,
+    members: (group.chat?.participants || []).map(participant => ({
+      id: participant.auth.id,
+      image:
+        participant.auth.person?.image || participant.auth.business?.image || null,
+    })),
+  }));
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+
+  return { meta, groups: refinedGroups };
+};
+
 const getSingleGroup = async (id: string) => {
   const result = await prisma.group.findUnique({
     where: {
@@ -436,5 +545,6 @@ export const groupServices = {
   toggleGroupVisibility,
   toggleGroupInvitationAccess,
   getAllGroups,
+  getPublicGroups,
   getGroupMembers,
 };

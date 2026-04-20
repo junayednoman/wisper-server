@@ -113,6 +113,8 @@ model Post {
   id            String        @id @default(uuid())
   authorId      String
   author        Auth          @relation(fields: [authorId], references: [id])
+  groupId       String?
+  group         Group?        @relation(fields: [groupId], references: [id])
   caption       String?
   images        String[]
   views         Int           @default(0)
@@ -169,6 +171,8 @@ model Job {
   id               String              @id @default(uuid())
   authorId         String
   author           Auth                @relation(fields: [authorId], references: [id])
+  groupId          String?
+  group            Group?              @relation(fields: [groupId], references: [id])
   title            String
   description      String
   type             JobType
@@ -223,6 +227,8 @@ model Group {
   image           String?
   createdAt       DateTime @default(now())
   chat            Chat?
+  posts           Post[]
+  jobs            Job[]
 
   @@map("groups")
 }

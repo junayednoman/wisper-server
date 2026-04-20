@@ -16,8 +16,38 @@ import prisma from "../../utils/prisma";
 import { TCreatePost } from "./post.validation";
 import ApiError from "../../middlewares/classes/ApiError";
 
+const ensureGroupMembership = async (groupId: string, userId: string) => {
+  const group = await prisma.group.findUniqueOrThrow({
+    where: {
+      id: groupId,
+    },
+    select: {
+      chat: {
+        select: {
+          participants: {
+            where: {
+              authId: userId,
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!(group.chat?.participants.length || 0)) {
+    throw new ApiError(403, "You are not a member of this group!");
+  }
+};
+
 const create = async (id: string, payload: TCreatePost, files?: TFile[]) => {
   payload.authorId = id;
+
+  if (payload.groupId) {
+    await ensureGroupMembership(payload.groupId, id);
+  }
 
   if (files && files.length) {
     const images = [];
@@ -134,6 +164,7 @@ const getFeedPosts = async (userId: string, options: TPaginationOptions) => {
   const postSelect = {
     id: true,
     caption: true,
+    groupId: true,
     images: true,
     views: true,
     createdAt: true,
@@ -157,6 +188,13 @@ const getFeedPosts = async (userId: string, options: TPaginationOptions) => {
             image: true,
           },
         },
+      },
+    },
+    group: {
+      select: {
+        id: true,
+        name: true,
+        image: true,
       },
     },
     _count: {
@@ -306,10 +344,87 @@ const getSingle = async (id: string) => {
           },
         },
       },
+      group: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
     },
   });
 
   return result;
+};
+
+const getGroupPosts = async (
+  groupId: string,
+  userId: string,
+  options: TPaginationOptions
+) => {
+  await ensureGroupMembership(groupId, userId);
+
+  const whereConditions: Prisma.PostWhereInput = {
+    groupId,
+    status: PostStatus.ACTIVE,
+  };
+
+  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
+
+  const posts = await prisma.post.findMany({
+    where: whereConditions,
+    include: {
+      author: {
+        select: {
+          id: true,
+          role: true,
+          person: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              title: true,
+            },
+          },
+          business: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              industry: true,
+            },
+          },
+        },
+      },
+      group: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      _count: {
+        select: {
+          comment: true,
+        },
+      },
+    },
+    skip,
+    take,
+    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+  });
+
+  const total = await prisma.post.count({
+    where: whereConditions,
+  });
+
+  const meta = {
+    page,
+    limit: take,
+    total,
+  };
+
+  return { meta, posts };
 };
 
 const allPosts = async (
@@ -363,6 +478,13 @@ const allPosts = async (
           },
         },
       },
+      group: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
     },
     skip,
     take,
@@ -395,6 +517,10 @@ const update = async (
   });
 
   if (post.authorId !== userId) throw new ApiError(401, "Unauthorized");
+
+  if (payload.groupId) {
+    await ensureGroupMembership(payload.groupId, userId);
+  }
 
   if (files && files.length) {
     const images = post.images || [];
@@ -544,6 +670,7 @@ const deletePost = async (id: string, userId: string) => {
 export const PostService = {
   create,
   getFeedPosts,
+  getGroupPosts,
   getSingle,
   allPosts,
   update,
