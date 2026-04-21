@@ -99,6 +99,7 @@ const getAllGroups = async (
       createdAt: true,
       chat: {
         select: {
+          id: true,
           _count: {
             select: {
               participants: true,
@@ -216,11 +217,14 @@ const getPublicGroups = async (
     name: group.name,
     image: group.image,
     createdAt: group.createdAt,
+    chatId: group.chat?.id || null,
     memberCount: group.chat?._count.participants || 0,
     members: (group.chat?.participants || []).map(participant => ({
       id: participant.auth.id,
       image:
-        participant.auth.person?.image || participant.auth.business?.image || null,
+        participant.auth.person?.image ||
+        participant.auth.business?.image ||
+        null,
     })),
   }));
 

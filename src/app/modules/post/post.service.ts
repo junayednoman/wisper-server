@@ -357,13 +357,7 @@ const getSingle = async (id: string) => {
   return result;
 };
 
-const getGroupPosts = async (
-  groupId: string,
-  userId: string,
-  options: TPaginationOptions
-) => {
-  await ensureGroupMembership(groupId, userId);
-
+const getGroupPosts = async (groupId: string, options: TPaginationOptions) => {
   const whereConditions: Prisma.PostWhereInput = {
     groupId,
     status: PostStatus.ACTIVE,
