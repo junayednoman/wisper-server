@@ -172,6 +172,7 @@ const getPublicGroups = async (
       createdAt: true,
       chat: {
         select: {
+          id: true,
           _count: {
             select: {
               participants: true,
