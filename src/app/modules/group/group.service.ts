@@ -134,19 +134,6 @@ const getPublicGroups = async (
     {
       isPrivate: false,
     },
-    {
-      NOT: {
-        chat: {
-          is: {
-            participants: {
-              some: {
-                authId,
-              },
-            },
-          },
-        },
-      },
-    },
   ];
 
   if (query.searchTerm) {
@@ -209,6 +196,30 @@ const getPublicGroups = async (
     take,
   });
 
+  const joinedGroupIds = new Set(
+    (
+      await prisma.chatParticipant.findMany({
+        where: {
+          authId,
+          chat: {
+            groupId: {
+              in: groups.map(group => group.id),
+            },
+          },
+        },
+        select: {
+          chat: {
+            select: {
+              groupId: true,
+            },
+          },
+        },
+      })
+    )
+      .map(participant => participant.chat.groupId)
+      .filter((groupId): groupId is string => Boolean(groupId))
+  );
+
   const total = await prisma.group.count({
     where: whereConditions,
   });
@@ -219,6 +230,7 @@ const getPublicGroups = async (
     image: group.image,
     createdAt: group.createdAt,
     chatId: group.chat?.id || null,
+    isJoined: joinedGroupIds.has(group.id),
     memberCount: group.chat?._count.participants || 0,
     members: (group.chat?.participants || []).map(participant => ({
       id: participant.auth.id,

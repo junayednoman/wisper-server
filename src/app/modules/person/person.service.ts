@@ -451,6 +451,6 @@ export const personServices = {
   getMyProfile,
   updateMyProfile,
   updateProfileImage,
-  getUserRoles,
   getGroupRoles,
+  getUserRoles,
 };
