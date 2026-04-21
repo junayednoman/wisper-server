@@ -182,13 +182,7 @@ const getAllJobs = async (
   return { meta, jobs };
 };
 
-const getGroupJobs = async (
-  groupId: string,
-  userId: string,
-  options: TPaginationOptions
-) => {
-  await ensureGroupMembership(groupId, userId);
-
+const getGroupJobs = async (groupId: string, options: TPaginationOptions) => {
   const whereConditions: Prisma.JobWhereInput = {
     groupId,
   };
